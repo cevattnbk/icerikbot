@@ -135,7 +135,7 @@ const [bulkProgress, setBulkProgress] = useState(0);
     if (!url.trim()) { inputRef.current?.focus(); return; }
     setLoading(true); setError(""); setResult(null);
     try {
-      const res = await fetch("/api/analyze", {
+      const res = await fetch("https://icerikbot-production.up.railway.apphttps://icerikbot-production.up.railway.app/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: url.trim(), platform, tone }),
@@ -156,7 +156,7 @@ const [bulkProgress, setBulkProgress] = useState(0);
     setBulkResults([]);
     setBulkProgress(0);
     try {
-      const res = await fetch("/api/analyze-bulk", {
+      const res = await fetch("https://icerikbot-production.up.railway.apphttps://icerikbot-production.up.railway.apphttps://icerikbot-production.up.railway.app/api/analyze-bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ urls, platform, tone }),
