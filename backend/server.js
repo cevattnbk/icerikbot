@@ -3,12 +3,6 @@ import express from "express";
 import cors from "cors";
 import * as cheerio from "cheerio";
 
-const app = express();
-app.use(cors({
-  origin: ["https://icerikbot.vercel.app", "http://localhost:5173"]
-}));
-app.use(express.json());
-
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
 async function scrapeProduct(url) {
