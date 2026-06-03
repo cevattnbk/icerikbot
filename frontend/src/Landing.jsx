@@ -22,10 +22,10 @@ export default function Landing({ onStart }) {
           Ürün linkini yapıştır,<br />
           <span className="text-orange-500">içeriğini saniyeler içinde al</span>
         </h1>
-        <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-  Trendyol'da her ürün için <span className="text-orange-500 font-semibold">saatler harcıyorsun</span> — 
-  açıklama yaz, SEO düşün, sosyal medya postu hazırla.<br />
-  <span className="text-slate-900 font-semibold">İçerikBot ile 30 saniyede bitti.</span>
+        <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+  Her ürün için açıklama yazmak, SEO düşünmek, sosyal medya postu hazırlamak 
+  <span className="text-slate-900 font-semibold"> saatler alıyor.</span><br />
+  <span className="text-orange-500 font-semibold">İçerikBot ile 30 saniyede bitti.</span>
 </p>
         <button onClick={onStart}
           className="px-8 py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg transition-all shadow-lg shadow-orange-200">

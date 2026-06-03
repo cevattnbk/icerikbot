@@ -57,10 +57,18 @@ function ResultCard({ label, icon, children, fullText }) {
 
 function Skeleton() {
   return (
-    <div className="space-y-3 animate-pulse">
-      {[1,2,3,4].map(i => (
-        <div key={i} className={`h-3 rounded-full bg-slate-100 ${i === 4 ? "w-2/3" : i % 2 === 0 ? "w-5/6" : "w-full"}`} />
+    <div className="space-y-4 animate-pulse">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-8 h-8 rounded-full bg-orange-100" />
+        <div className="h-4 w-48 rounded-full bg-slate-100" />
+      </div>
+      {[1,2,3,4,5].map(i => (
+        <div key={i} className={`h-3 rounded-full bg-slate-100 ${i === 5 ? "w-1/2" : i % 2 === 0 ? "w-5/6" : "w-full"}`} />
       ))}
+      <div className="pt-4 space-y-2">
+        <div className="h-3 rounded-full bg-orange-50 w-3/4" />
+        <div className="h-3 rounded-full bg-orange-50 w-2/3" />
+      </div>
     </div>
   );
 }
@@ -253,8 +261,8 @@ const [bulkProgress, setBulkProgress] = useState(0);
   disabled={bulkMode ? bulkLoading : (loading || !url.trim())}
   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all">
   {bulkMode
-    ? (bulkLoading ? <><Icon name="loader" className="w-4 h-4 animate-spin" />Analiz ediliyor...</> : <><Icon name="sparkles" className="w-4 h-4" />Toplu Analiz Başlat</>)
-    : (loading ? <><Icon name="loader" className="w-4 h-4 animate-spin" />Analiz ediliyor...</> : <><Icon name="sparkles" className="w-4 h-4" />İçerik Üret</>)
+   ? (bulkLoading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />Analiz ediliyor...</> : <><Icon name="sparkles" className="w-4 h-4" />Toplu Analiz Başlat</>)
+    : (loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />İçerikler hazırlanıyor...</> : <><Icon name="sparkles" className="w-4 h-4" />İçerik Üret</>)
   }
 </button>
 
