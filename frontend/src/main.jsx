@@ -6,7 +6,7 @@ import "./index.css";
 
 function Root() {
   const [started, setStarted] = useState(false);
-  if (started) return <App />;
+  if (started) return <App onBack={() => setStarted(false)} />;
   return <Landing onStart={() => setStarted(true)} />;
 }
 

@@ -114,7 +114,7 @@ function downloadExcel(results) {
 }
 const SOCIAL = ["Instagram", "Twitter/X", "Facebook", "LinkedIn"];
 
-export default function App() {
+export default function App({ onBack }) {
   const [url, setUrl] = useState("");
   const [platform, setPlatform] = useState("trendyol");
   const [tone, setTone] = useState("Profesyonel");
@@ -181,6 +181,11 @@ const [bulkProgress, setBulkProgress] = useState(0);
         <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
           <Icon name="sparkles" className="w-4 h-4 text-white" />
         </div>
+        {onBack && (
+  <button onClick={onBack} className="text-slate-400 hover:text-slate-600 text-sm mr-2">
+    ← Geri
+  </button>
+)}
         <span className="font-bold text-slate-900 text-lg">İçerik<span className="text-orange-500">Bot</span></span>
         <span className="ml-auto text-xs text-slate-400">E-Ticaret AI İçerik Üretici</span>
       </header>
