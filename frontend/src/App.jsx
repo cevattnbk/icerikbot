@@ -45,7 +45,7 @@ function ResultCard({ label, icon, children, fullText }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white p-5">
       <div className="flex items-center justify-between mb-3">
-        <span className="flex items-center gap-2 text-xs font-semibold tracking-widest uppercase text-slate-400">
+        <span className="flex items-center gap-2 text-sm font-bold text-slate-700">
           <Icon name={icon} className="w-3.5 h-3.5" />{label}
         </span>
         {fullText && <CopyBtn text={fullText} />}
