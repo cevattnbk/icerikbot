@@ -22,7 +22,7 @@ export default function Landing({ onStart }) {
           Ürün linkini yapıştır,<br />
           <span className="text-orange-500">içeriğini saniyeler içinde al</span>
         </h1>
-        <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xl text-slate-900 mb-10 max-w-2xl mx-auto leading-relaxed">
   Ürün açıklaması, SEO uyumlu metinler ve sosyal medya gönderileri hazırlamakla saatlerinizi harcamayın. 
   <span className="text-slate-900 font-semibold"> İçerikBot ile profesyonel içerikler 30 saniyede hazır.</span><br />
   
