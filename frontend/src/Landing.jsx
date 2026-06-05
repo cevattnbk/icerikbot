@@ -22,10 +22,8 @@ export default function Landing({ onStart }) {
           Ürün linkini yapıştır,<br />
           <span className="text-orange-500">içeriğini saniyeler içinde al</span>
         </h1>
-        <p className="text-xl text-slate-900 mb-10 max-w-2xl mx-auto leading-relaxed">
-  Ürün açıklaması, SEO uyumlu metinler ve sosyal medya gönderileri hazırlamakla saatlerinizi harcamayın. 
-  <span className="text-slate-900 font-semibold"> İçerikBot ile profesyonel içerikler 30 saniyede hazır.</span><br />
-  
+        <p className="text-xl text-slate-700 mb-10 max-w-2xl mx-auto leading-relaxed">
+  Ürün açıklaması, SEO uyumlu metinler ve sosyal medya gönderileri hazırlamakla saatlerinizi harcamayın. İçerikBot ile profesyonel içerikler 30 saniyede hazır.
 </p>
         <button onClick={onStart}
           className="px-8 py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg transition-all shadow-lg shadow-orange-200">
