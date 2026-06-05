@@ -248,6 +248,79 @@ app.post("/api/analyze-bulk", async (req, res) => {
 
   res.json({ results });
 });
+async function scrapeCompetitors(productName, platform) {
+  try {
+    const searchQuery = productName.split(" ").slice(0, 4).join("+");
+    const searchUrl = `https://www.trendyol.com/sr?q=${searchQuery}`;
+    const headers = {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept-Language": "tr-TR,tr;q=0.9",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    };
+    const res = await fetch(searchUrl, { headers });
+    const html = await res.text();
+    const $ = cheerio.load(html);
+    const competitors = [];
+    $(".p-card-wrppr").slice(0, 5).each((_, el) => {
+      const name = $(el).find(".prdct-desc-cntnr-name").text().trim();
+      const brand = $(el).find(".prdct-desc-cntnr-ttl").text().trim();
+      const price = $(el).find(".prc-box-dscntd, .prc-box-sllng").first().text().trim();
+      if (name) competitors.push({ name, brand, price });
+    });
+    return competitors;
+  } catch (err) {
+    console.error("Rakip scrape hatası:", err.message);
+    return [];
+  }
+}
+
+app.post("/api/competitors", async (req, res) => {
+  const { productName, platform = "trendyol" } = req.body;
+  if (!productName) return res.status(400).json({ error: "Ürün adı gerekli" });
+  try {
+    const competitors = await scrapeCompetitors(productName, platform);
+    if (!competitors.length) {
+      return res.json({ analysis: null, competitors: [] });
+    }
+    const prompt = `Sen bir e-ticaret rakip analizi uzmanısın. Aşağıdaki rakip ürünleri analiz et ve Türkçe JSON döndür.
+
+ANA ÜRÜN: ${productName}
+
+RAKİP ÜRÜNLER:
+${competitors.map((c, i) => `${i+1}. ${c.brand} - ${c.name} (${c.price})`).join("\n")}
+
+Sadece JSON döndür:
+{
+  "commonKeywords": ["kelime1", "kelime2", "kelime3", "kelime4", "kelime5"],
+  "missingKeywords": ["eksik1", "eksik2", "eksik3"],
+  "pricePosition": "Rakiplere göre fiyat konumu hakkında 1 cümle",
+  "titleSuggestion": "Rakip analizine göre önerilen başlık",
+  "insight": "En önemli 2-3 cümle rakip analizi özeti"
+}`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    const data = await response.json();
+    const raw = data.content?.[0]?.text || "";
+    const jsonStr = raw.replace(/^```json\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+    const analysis = JSON.parse(jsonStr);
+    res.json({ competitors, analysis });
+  } catch (err) {
+    console.error("Rakip analizi hatası:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 
 const PORT = process.env.PORT || 3001;

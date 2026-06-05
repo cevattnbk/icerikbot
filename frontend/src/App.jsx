@@ -136,7 +136,9 @@ const [bulkUrls, setBulkUrls] = useState("");
 const [bulkResults, setBulkResults] = useState([]);
 const [bulkLoading, setBulkLoading] = useState(false);
 const [bulkProgress, setBulkProgress] = useState(0);
-  const inputRef = useRef();
+const [competitors, setCompetitors] = useState(null);
+const [competitorLoading, setCompetitorLoading] = useState(false);
+const inputRef = useRef();
 
   const handleAnalyze = async () => {
    
@@ -149,7 +151,26 @@ const [bulkProgress, setBulkProgress] = useState(0);
         body: JSON.stringify({ url: url.trim(), platform, tone }),
       });
       if (!res.ok) throw new Error(await res.text());
-      setResult(await res.json());
+      const r = await res.json();
+setResult(r);
+setActiveTab("description");
+if (r.product?.name) {
+  setCompetitorLoading(true);
+  setCompetitors(null);
+  try {
+    const cr = await fetch("https://icerikbot-production.up.railway.app/api/competitors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productName: r.product.name }),
+    });
+    const cd = await cr.json();
+    setCompetitors(cd);
+  } catch (e) {
+    console.error("Rakip analizi hatası:", e);
+  } finally {
+    setCompetitorLoading(false);
+  }
+}
       setActiveTab("description");
     } catch (e) {
       setError(e.message || "Bir hata oluştu.");
@@ -395,6 +416,65 @@ const [bulkProgress, setBulkProgress] = useState(0);
                         <span className="text-orange-400">→</span>{lt}
                       </li>
                     ))}
+                    {!loading && result && activeTab === "seo" && (
+  <div className="rounded-2xl border border-slate-100 bg-white p-5 mt-4">
+    <div className="flex items-center gap-2 mb-4">
+      <span className="text-sm font-bold text-slate-700">🔍 Rakip Analizi</span>
+      {competitorLoading && <span className="text-xs text-slate-400 animate-pulse">Rakipler analiz ediliyor...</span>}
+    </div>
+    {competitorLoading && (
+      <div className="space-y-2 animate-pulse">
+        {[1,2,3].map(i => <div key={i} className={`h-3 rounded-full bg-slate-100 ${i===3?"w-1/2":"w-full"}`} />)}
+      </div>
+    )}
+    {!competitorLoading && competitors?.analysis && (
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Rakiplerin Ortak Kelimeleri</p>
+          <div className="flex flex-wrap gap-2">
+            {competitors.analysis.commonKeywords?.map((k,i) => (
+              <span key={i} className="px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-200">{k}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Sende Eksik Kelimeler</p>
+          <div className="flex flex-wrap gap-2">
+            {competitors.analysis.missingKeywords?.map((k,i) => (
+              <span key={i} className="px-3 py-1 rounded-full text-xs bg-red-50 text-red-700 border border-red-200">⚠ {k}</span>
+            ))}
+          </div>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Önerilen Başlık</p>
+          <p className="text-sm font-medium text-slate-800 p-3 bg-orange-50 rounded-xl border border-orange-100">{competitors.analysis.titleSuggestion}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Fiyat Konumu</p>
+          <p className="text-sm text-slate-600">{competitors.analysis.pricePosition}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Özet</p>
+          <p className="text-sm text-slate-600 leading-relaxed">{competitors.analysis.insight}</p>
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Rakip Ürünler</p>
+          <div className="space-y-1">
+            {competitors.competitors?.map((c,i) => (
+              <div key={i} className="flex items-center justify-between text-xs text-slate-600 py-1 border-b border-slate-50">
+                <span className="truncate">{c.brand} — {c.name}</span>
+                <span className="font-medium text-slate-800 ml-2 flex-shrink-0">{c.price}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    {!competitorLoading && !competitors?.analysis && result && (
+      <p className="text-sm text-slate-400">Rakip verisi bulunamadı.</p>
+    )}
+  </div>
+)}
                   </ul>
                 </ResultCard>
                 <ResultCard label="Trendyol Etiketleri" icon="tag" fullText={result.seo?.trendyolTags?.join(", ")}>
