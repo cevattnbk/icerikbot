@@ -249,29 +249,7 @@ app.post("/api/analyze-bulk", async (req, res) => {
   res.json({ results });
 });
 async function scrapeCompetitors(productName, platform) {
-  try {
-    const searchQuery = productName.split(" ").slice(0, 4).join("+");
-    const searchUrl = `https://www.trendyol.com/sr?q=${searchQuery}`;
-    const headers = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      "Accept-Language": "tr-TR,tr;q=0.9",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    };
-    const res = await fetch(searchUrl, { headers });
-    const html = await res.text();
-    const $ = cheerio.load(html);
-    const competitors = [];
-    $(".p-card-wrppr").slice(0, 5).each((_, el) => {
-      const name = $(el).find(".prdct-desc-cntnr-name").text().trim();
-      const brand = $(el).find(".prdct-desc-cntnr-ttl").text().trim();
-      const price = $(el).find(".prc-box-dscntd, .prc-box-sllng").first().text().trim();
-      if (name) competitors.push({ name, brand, price });
-    });
-    return competitors;
-  } catch (err) {
-    console.error("Rakip scrape hatası:", err.message);
-    return [];
-  }
+  return [];
 }
 
 app.post("/api/competitors", async (req, res) => {
@@ -282,20 +260,20 @@ app.post("/api/competitors", async (req, res) => {
     if (!competitors.length) {
       return res.json({ analysis: null, competitors: [] });
     }
-    const prompt = `Sen bir e-ticaret rakip analizi uzmanısın. Aşağıdaki rakip ürünleri analiz et ve Türkçe JSON döndür.
+   const prompt = `Sen bir Türk e-ticaret uzmanısın. Aşağıdaki ürün için kategori bilgisine dayanarak rakip analizi yap.
 
-ANA ÜRÜN: ${productName}
+ÜRÜN: ${productName}
+PLATFORM: ${platform}
 
-RAKİP ÜRÜNLER:
-${competitors.map((c, i) => `${i+1}. ${c.brand} - ${c.name} (${c.price})`).join("\n")}
+Bu ürün kategorisinde Trendyol'daki rakipler genellikle nasıl bir strateji izler? Gerçekçi ve uygulanabilir analiz yap.
 
-Sadece JSON döndür:
+Sadece JSON döndür, başka hiçbir şey yazma:
 {
-  "commonKeywords": ["kelime1", "kelime2", "kelime3", "kelime4", "kelime5"],
-  "missingKeywords": ["eksik1", "eksik2", "eksik3"],
-  "pricePosition": "Rakiplere göre fiyat konumu hakkında 1 cümle",
-  "titleSuggestion": "Rakip analizine göre önerilen başlık",
-  "insight": "En önemli 2-3 cümle rakip analizi özeti"
+  "commonKeywords": ["bu kategoride sık kullanılan kelime1", "kelime2", "kelime3", "kelime4", "kelime5"],
+  "missingKeywords": ["ürün adında muhtemelen eksik olan kelime1", "kelime2", "kelime3"],
+  "pricePosition": "Bu kategoride fiyatlandırma stratejisi hakkında 1 cümle",
+  "titleSuggestion": "Bu ürün için optimize edilmiş örnek başlık",
+  "insight": "Bu kategoride başarılı satıcıların yaptığı en önemli 2-3 şey"
 }`;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
