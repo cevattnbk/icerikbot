@@ -257,9 +257,7 @@ app.post("/api/competitors", async (req, res) => {
   if (!productName) return res.status(400).json({ error: "Ürün adı gerekli" });
   try {
     const competitors = await scrapeCompetitors(productName, platform);
-    if (!competitors.length) {
-      return res.json({ analysis: null, competitors: [] });
-    }
+    // competitors boş olsa bile Claude analizi yap
    const prompt = `Sen bir Türk e-ticaret uzmanısın. Aşağıdaki ürün için kategori bilgisine dayanarak rakip analizi yap.
 
 ÜRÜN: ${productName}
