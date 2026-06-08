@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { supabase } from "./supabase";
 
 const Icon = ({ name, className = "" }) => {
   const icons = {
@@ -122,7 +123,7 @@ function downloadExcel(results) {
 }
 const SOCIAL = ["Instagram", "Twitter/X", "Facebook", "LinkedIn"];
 
-export default function App({ onBack }) {
+export default function App({ onBack, user }) {
   const [url, setUrl] = useState("");
   const [platform, setPlatform] = useState("trendyol");
   const [tone, setTone] = useState("Profesyonel");
@@ -136,6 +137,19 @@ const [bulkUrls, setBulkUrls] = useState("");
 const [bulkResults, setBulkResults] = useState([]);
 const [bulkLoading, setBulkLoading] = useState(false);
 const [bulkProgress, setBulkProgress] = useState(0);
+const [credits, setCredits] = useState(null);
+useEffect(() => {
+  if (user) {
+    supabase
+      .from("profiles")
+      .select("credits")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setCredits(data.credits);
+      });
+  }
+}, [user]);
 const [competitors, setCompetitors] = useState(null);
 const [competitorLoading, setCompetitorLoading] = useState(false);
 const inputRef = useRef();
@@ -143,6 +157,10 @@ const inputRef = useRef();
   const handleAnalyze = async () => {
    
     if (!url.trim()) { inputRef.current?.focus(); return; }
+    if (credits !== null && credits <= 0) {
+  setError("Ücretsiz analiz hakkın doldu. Lütfen bir plan satın al.");
+  return;
+}
     setLoading(true); setError(""); setResult(null);
     try {
       const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze", {
@@ -153,6 +171,14 @@ const inputRef = useRef();
       if (!res.ok) throw new Error(await res.text());
       const r = await res.json();
 setResult(r);
+if (credits !== null && credits > 0) {
+  const newCredits = credits - 1;
+  setCredits(newCredits);
+  await supabase
+    .from("profiles")
+    .update({ credits: newCredits })
+    .eq("id", user.id);
+}
 setActiveTab("description");
 if (r.product?.name) {
   setCompetitorLoading(true);
@@ -216,7 +242,17 @@ if (r.product?.name) {
   </button>
 )}
         <span className="font-bold text-slate-900 text-lg">İçerik<span className="text-orange-500">Bot</span></span>
-        <span className="ml-auto text-xs text-slate-400">E-Ticaret AI İçerik Üretici</span>
+<div className="ml-auto flex items-center gap-3">
+  {credits !== null && (
+    <span className={`text-xs font-medium px-3 py-1 rounded-full ${credits > 0 ? "bg-orange-50 text-orange-600" : "bg-red-50 text-red-500"}`}>
+      {credits > 0 ? `${credits} analiz hakkın var` : "Hakkın doldu"}
+    </span>
+  )}
+  <button onClick={async () => { await supabase.auth.signOut(); onBack(); }}
+    className="text-xs text-slate-400 hover:text-slate-600 transition-all">
+    Çıkış
+  </button>
+</div>
       </header>
 
       <div className="flex h-[calc(100vh-65px)]">
