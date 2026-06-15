@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import * as cheerio from "cheerio";
+import crypto from "crypto";
 
 const app = express();
 app.use(cors({
@@ -10,6 +11,8 @@ app.use(cors({
 app.use(express.json());
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+const SHOPIER_API_KEY = process.env.SHOPIER_API_KEY;
+const SHOPIER_API_SECRET = process.env.SHOPIER_API_SECRET;
 
 async function scrapeProduct(url) {
   const headers = {
@@ -296,6 +299,92 @@ Sadece JSON döndür, başka hiçbir şey yazma:
     console.error("Rakip analizi hatası:", err.message);
     res.status(500).json({ error: err.message });
   }
+});
+const PLANS = {
+  baslangic: { name: "Başlangıç Paketi", price: "149.00" },
+  pro: { name: "Pro Paket", price: "349.00" },
+  ajans: { name: "Ajans Paketi", price: "899.00" },
+};
+
+app.post("/api/create-payment", (req, res) => {
+  const { plan, userId, email } = req.body;
+  const planInfo = PLANS[plan];
+  if (!planInfo) return res.status(400).json({ error: "Geçersiz plan" });
+
+  const orderId = `${userId}_${plan}_${Date.now()}`;
+  const randomNr = Math.floor(Math.random() * 1000000);
+
+  // Shopier imza algoritması
+  const dataToSign = randomNr + orderId + planInfo.price + "TRY";
+  const signature = crypto
+    .createHmac("sha256", SHOPIER_API_SECRET)
+    .update(dataToSign)
+    .digest("base64");
+
+  const formData = {
+    API_key: SHOPIER_API_KEY,
+    website_index: "1",
+    platform_order_id: orderId,
+    product_name: planInfo.name,
+    product_type: "1", // dijital ürün
+    buyer_name: "Kullanıcı",
+    buyer_surname: "İçerikBot",
+    buyer_email: email,
+    buyer_account_age: "0",
+    buyer_id_nr: userId,
+    buyer_phone: "5555555555",
+    billing_address: "Türkiye",
+    billing_city: "İstanbul",
+    billing_country: "Turkey",
+    billing_postcode: "34000",
+    shipping_address: "Türkiye",
+    shipping_city: "İstanbul",
+    shipping_country: "Turkey",
+    shipping_postcode: "34000",
+    total_order_value: planInfo.price,
+    currency: "0", // 0 = TRY
+    platform: "0",
+    is_in_frame: "0",
+    current_language: "1", // 1 = TR
+    modul_version: "1.0.4",
+    random_nr: randomNr,
+    signature: signature,
+  };
+
+  res.json({ formData, paymentUrl: "https://www.shopier.com/ShowProduct/api_pay4.php" });
+});
+
+app.post("/api/shopier-callback", express.urlencoded({ extended: true }), async (req, res) => {
+  const body = req.body;
+  const { platform_order_id, status, signature, random_nr } = body;
+
+  // İmza doğrulama
+  const dataToSign = random_nr + platform_order_id;
+  const expectedSignature = crypto
+    .createHmac("sha256", SHOPIER_API_SECRET)
+    .update(dataToSign)
+    .digest("base64");
+
+  if (signature !== expectedSignature) {
+    console.error("❌ Shopier callback: geçersiz imza");
+    return res.status(400).send("Invalid signature");
+  }
+
+  if (status === "success") {
+    try {
+      const [userId, plan] = platform_order_id.split("_");
+      const creditsMap = { baslangic: 100, pro: 500, ajans: 999999 };
+      const credits = creditsMap[plan] || 0;
+
+      console.log(`✅ Ödeme başarılı: user=${userId}, plan=${plan}, credits=${credits}`);
+
+      // Supabase güncelleme buraya gelecek
+    } catch (err) {
+      console.error("❌ Callback işleme hatası:", err.message);
+    }
+  }
+
+  res.status(200).send("");
 });
 app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 
