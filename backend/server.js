@@ -15,12 +15,21 @@ const SHOPIER_API_KEY = process.env.SHOPIER_API_KEY;
 const SHOPIER_API_SECRET = process.env.SHOPIER_API_SECRET;
 
 async function scrapeProduct(url) {
-  const headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept-Language": "tr-TR,tr;q=0.9,en;q=0.8",
-    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Cache-Control": "no-cache",
-  };
+ const headers = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  "Accept-Language": "tr-TR,tr;q=0.9,en;q=0.8",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+  "Cache-Control": "no-cache",
+  "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+  "Sec-Ch-Ua-Mobile": "?0",
+  "Sec-Ch-Ua-Platform": '"Windows"',
+  "Sec-Fetch-Dest": "document",
+  "Sec-Fetch-Mode": "navigate",
+  "Sec-Fetch-Site": "none",
+  "Sec-Fetch-User": "?1",
+  "Upgrade-Insecure-Requests": "1",
+  "Referer": "https://www.google.com/",
+};
   const res = await fetch(url, { headers });
   if (!res.ok) throw new Error(`HTTP ${res.status}: Sayfa yüklenemedi`);
   const html = await res.text();
