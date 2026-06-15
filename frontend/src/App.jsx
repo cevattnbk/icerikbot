@@ -150,6 +150,36 @@ useEffect(() => {
       });
   }
 }, [user]);
+const [showPlans, setShowPlans] = useState(false);
+const [paymentLoading, setPaymentLoading] = useState(null);
+
+const handlePurchase = async (plan) => {
+  setPaymentLoading(plan);
+  try {
+    const res = await fetch("https://icerikbot-production.up.railway.app/api/create-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan, userId: user.id, email: user.email }),
+    });
+    const { formData, paymentUrl } = await res.json();
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = paymentUrl;
+    Object.entries(formData).forEach(([key, value]) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  } catch (e) {
+    console.error("Ödeme başlatma hatası:", e);
+    setPaymentLoading(null);
+  }
+};
 const [competitors, setCompetitors] = useState(null);
 const [competitorLoading, setCompetitorLoading] = useState(false);
 const inputRef = useRef();
@@ -158,7 +188,7 @@ const inputRef = useRef();
    
     if (!url.trim()) { inputRef.current?.focus(); return; }
     if (credits !== null && credits <= 0) {
-  setError("Ücretsiz analiz hakkın doldu. Lütfen bir plan satın al.");
+  setShowPlans(true);
   return;
 }
     setLoading(true); setError(""); setResult(null);
@@ -391,7 +421,36 @@ if (r.product?.name) {
     ))}
   </div>
 )}
-            {!loading && !result && !error && (
+{showPlans && (
+  <div className="flex flex-col items-center justify-center h-96 text-center space-y-6">
+    <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
+      <Icon name="zap" className="w-8 h-8 text-orange-400" />
+    </div>
+    <div>
+      <p className="text-slate-700 font-semibold text-lg">Ücretsiz analiz hakkın doldu!</p>
+      <p className="text-slate-400 text-sm mt-1">Devam etmek için bir plan seç</p>
+    </div>
+    <div className="grid md:grid-cols-3 gap-4 max-w-3xl">
+      {[
+        { id: "baslangic", name: "Başlangıç", price: "149₺", credits: "100 analiz" },
+        { id: "pro", name: "Pro", price: "349₺", credits: "500 analiz", highlight: true },
+        { id: "ajans", name: "Ajans", price: "899₺", credits: "Sınırsız" },
+      ].map(p => (
+        <div key={p.id} className={`rounded-2xl p-5 border ${p.highlight ? "border-orange-400 bg-orange-50" : "border-slate-200 bg-white"}`}>
+          {p.highlight && <div className="text-xs font-semibold text-orange-600 mb-2">⭐ EN POPÜLER</div>}
+          <h3 className="font-bold text-slate-900 text-lg mb-1">{p.name}</h3>
+          <p className="text-2xl font-bold text-slate-900 mb-1">{p.price}<span className="text-sm text-slate-400 font-normal">/ay</span></p>
+          <p className="text-sm text-slate-500 mb-4">{p.credits}</p>
+          <button onClick={() => handlePurchase(p.id)} disabled={paymentLoading === p.id}
+            className={`w-full py-2.5 rounded-xl font-medium text-sm transition-all ${p.highlight ? "bg-orange-500 hover:bg-orange-600 text-white" : "border border-slate-200 text-slate-700 hover:border-orange-300"}`}>
+            {paymentLoading === p.id ? "Yönlendiriliyor..." : "Satın Al"}
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+            {!loading && !result && !error && !showPlans && (
               <div className="flex flex-col items-center justify-center h-96 text-center space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
                   <Icon name="sparkles" className="w-8 h-8 text-orange-400" />
