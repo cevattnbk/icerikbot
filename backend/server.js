@@ -31,7 +31,7 @@ async function scrapeProduct(url) {
   "Referer": "https://www.google.com/",
 };
   const SCRAPER_API_KEY = process.env.SCRAPER_API_KEY;
-const scraperUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&country_code=tr&render=true`;
+const scraperUrl = `http://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(url)}&country_code=tr`;
 const res = await fetch(scraperUrl);
   if (!res.ok) throw new Error(`HTTP ${res.status}: Sayfa yüklenemedi`);
   const html = await res.text();
