@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import * as cheerio from "cheerio";
 import crypto from "crypto";
+import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 app.use(cors({
@@ -13,6 +14,10 @@ app.use(express.json());
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const SHOPIER_API_KEY = process.env.SHOPIER_API_KEY;
 const SHOPIER_API_SECRET = process.env.SHOPIER_API_SECRET;
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 
 async function scrapeProduct(url) {
  const headers = {
@@ -389,7 +394,16 @@ app.post("/api/shopier-callback", express.urlencoded({ extended: true }), async 
 
       console.log(`✅ Ödeme başarılı: user=${userId}, plan=${plan}, credits=${credits}`);
 
-      // Supabase güncelleme buraya gelecek
+      const { error } = await supabase
+  .from("profiles")
+  .update({ credits, plan })
+  .eq("id", userId);
+
+if (error) {
+  console.error("❌ Supabase güncelleme hatası:", error.message);
+} else {
+  console.log(`✅ Kullanıcı güncellendi: ${userId} → ${plan} (${credits} kredi)`);
+}
     } catch (err) {
       console.error("❌ Callback işleme hatası:", err.message);
     }
