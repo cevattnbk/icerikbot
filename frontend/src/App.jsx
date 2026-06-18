@@ -291,6 +291,12 @@ if (r.product?.name) {
       {credits > 0 ? `${credits} analiz hakkın var` : "Hakkın doldu"}
     </span>
   )}
+  {onAdmin && (
+  <button onClick={onAdmin}
+    className="text-xs text-slate-400 hover:text-orange-500 transition-all">
+    Admin
+  </button>
+)}
   <button onClick={async () => { await supabase.auth.signOut(); onBack(); }}
     className="text-xs text-slate-400 hover:text-slate-600 transition-all">
     Çıkış

@@ -4,12 +4,28 @@ import App from "./App.jsx";
 import Landing from "./Landing.jsx";
 import Auth from "./Auth.jsx";
 import { supabase } from "./supabase.js";
+import Admin from "./Admin.jsx";
 import "./index.css";
 
 function Root() {
   const [started, setStarted] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+const [showAdmin, setShowAdmin] = useState(false);
+
+useEffect(() => {
+  if (user) {
+    supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.is_admin) setIsAdmin(true);
+      });
+  }
+}, [user]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -29,8 +45,9 @@ function Root() {
   );
 
   if (!started) return <Landing onStart={() => setStarted(true)} />;
-  if (!user) return <Auth onAuth={setUser} />;
-  return <App user={user} onBack={() => setStarted(false)} />;
+if (!user) return <Auth onAuth={setUser} />;
+if (showAdmin) return <Admin user={user} onBack={() => setShowAdmin(false)} />;
+return <App user={user} onBack={() => setStarted(false)} onAdmin={isAdmin ? () => setShowAdmin(true) : null} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
