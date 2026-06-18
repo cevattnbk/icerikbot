@@ -123,7 +123,7 @@ function downloadExcel(results) {
 }
 const SOCIAL = ["Instagram", "Twitter/X", "Facebook", "LinkedIn"];
 
-export default function App({ onBack, user }) {
+export default function App({ onBack, user, onAdmin }) {
   const [url, setUrl] = useState("");
   const [platform, setPlatform] = useState("trendyol");
   const [tone, setTone] = useState("Profesyonel");
