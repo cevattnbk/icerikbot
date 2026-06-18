@@ -138,6 +138,14 @@ const [bulkResults, setBulkResults] = useState([]);
 const [bulkLoading, setBulkLoading] = useState(false);
 const [bulkProgress, setBulkProgress] = useState(0);
 const [credits, setCredits] = useState(null);
+const [manualMode, setManualMode] = useState(false);
+const [manualForm, setManualForm] = useState({
+  name: "",
+  brand: "",
+  price: "",
+  description: "",
+  features: "",
+});
 useEffect(() => {
   if (user) {
     supabase
@@ -228,8 +236,13 @@ if (r.product?.name) {
   }
 }
       setActiveTab("description");
-    } catch (e) {
-      setError(e.message || "Bir hata oluştu.");
+   } catch (e) {
+  if (!manualMode) {
+    setManualMode(true);
+    setError("");
+  } else {
+    setError(e.message || "Bir hata oluştu.");
+  }
     } finally {
       setLoading(false);
     }
@@ -319,6 +332,26 @@ if (r.product?.name) {
         onKeyDown={e => e.key === "Enter" && handleAnalyze()}
         placeholder="https://www.trendyol.com/..."
         className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400 transition-all" />
+    {manualMode && (
+  <div className="mt-3 p-3 rounded-xl bg-orange-50 border border-orange-200">
+    <p className="text-xs text-orange-600 font-medium mb-2">⚠ Link çekilemedi — ürün bilgilerini gir:</p>
+    <div className="space-y-2">
+      <input type="text" placeholder="Ürün adı *" value={manualForm.name}
+        onChange={e => setManualForm(p => ({...p, name: e.target.value}))}
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-orange-400" />
+      <input type="text" placeholder="Marka" value={manualForm.brand}
+        onChange={e => setManualForm(p => ({...p, brand: e.target.value}))}
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-orange-400" />
+      <input type="text" placeholder="Fiyat (örn: 299 TL)" value={manualForm.price}
+        onChange={e => setManualForm(p => ({...p, price: e.target.value}))}
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-orange-400" />
+      <textarea placeholder="Ürün özellikleri (virgülle ayır)" value={manualForm.features}
+        onChange={e => setManualForm(p => ({...p, features: e.target.value}))}
+        rows={3}
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-orange-400 resize-none" />
+    </div>
+  </div>
+)}
     </div>
   </div>
 ) : (
