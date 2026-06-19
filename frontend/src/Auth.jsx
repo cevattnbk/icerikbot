@@ -21,6 +21,11 @@ export default function Auth({ onAuth }) {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+        fetch("https://icerikbot-production.up.railway.app/api/send-welcome-email", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email }),
+}).catch(() => {});
         setSuccess("Kayıt başarılı! Email adresine doğrulama linki gönderildi.");
       }
     } catch (e) {

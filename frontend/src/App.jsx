@@ -216,6 +216,13 @@ if (credits !== null && credits > 0) {
     .from("profiles")
     .update({ credits: newCredits })
     .eq("id", user.id);
+  if (newCredits === 1) {
+    fetch("https://icerikbot-production.up.railway.app/api/send-low-credit-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: user.email }),
+    }).catch(() => {});
+  }
 }
 setActiveTab("description");
 if (r.product?.name) {

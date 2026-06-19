@@ -4,6 +4,7 @@ import cors from "cors";
 import * as cheerio from "cheerio";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 
 const app = express();
 app.use(cors({
@@ -18,7 +19,36 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+const resend = new Resend(process.env.RESEND_API_KEY);
 
+async function sendEmail(to, subject, html) {
+  try {
+    await resend.emails.send({
+      from: "İçerikBot <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+    });
+    console.log(`✅ Email gönderildi: ${to}`);
+  } catch (err) {
+    console.error(`❌ Email hatası: ${err.message}`);
+  }
+}
+app.post("/api/send-low-credit-email", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Email gerekli" });
+  await sendEmail(
+    email,
+    "Son Analiz Hakkın! ⚡",
+    `<div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
+      <h2 style="color: #f97316;">Dikkat! Son hakkın kaldı ⚡</h2>
+      <p>Ücretsiz analiz hakkından <strong>sadece 1 tane</strong> kaldı.</p>
+      <p>Kesintisiz devam etmek için bir plan seçebilirsin.</p>
+      <a href="https://icerikbot.vercel.app" style="display: inline-block; background: #f97316; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; margin-top: 16px;">Plan Seç →</a>
+    </div>`
+  );
+  res.json({ success: true });
+});
 async function scrapeProduct(url) {
  const headers = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -403,6 +433,20 @@ if (error) {
   console.error("❌ Supabase güncelleme hatası:", error.message);
 } else {
   console.log(`✅ Kullanıcı güncellendi: ${userId} → ${plan} (${credits} kredi)`);
+}
+const planNames = { baslangic: "Başlangıç", pro: "Pro", ajans: "Ajans" };
+const { data: userProfile } = await supabase.from("profiles").select("email").eq("id", userId).single();
+if (userProfile?.email) {
+  await sendEmail(
+    userProfile.email,
+    "Ödemen Alındı! 🎉",
+    `<div style="font-family: sans-serif; max-width: 500px; margin: 0 auto;">
+      <h2 style="color: #f97316;">Teşekkürler! 🎉</h2>
+      <p><strong>${planNames[plan] || plan}</strong> paketin aktif edildi.</p>
+      <p>Hesabına <strong>${credits} analiz hakkı</strong> tanımlandı.</p>
+      <a href="https://icerikbot.vercel.app" style="display: inline-block; background: #f97316; color: white; padding: 12px 24px; border-radius: 12px; text-decoration: none; margin-top: 16px;">Hemen Kullan →</a>
+    </div>`
+  );
 }
     } catch (err) {
       console.error("❌ Callback işleme hatası:", err.message);
