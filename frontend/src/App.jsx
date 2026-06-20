@@ -282,8 +282,7 @@ if (r.product?.name) {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      <header className="border-b border-slate-200 bg-white px-6 py-4 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
+<header className="border-b border-slate-200 bg-white px-4 md:px-6 py-3 md:py-4 flex items-center gap-2 md:gap-3 flex-wrap">        <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center">
           <Icon name="sparkles" className="w-4 h-4 text-white" />
         </div>
         {onBack && (
@@ -311,9 +310,8 @@ if (r.product?.name) {
 </div>
       </header>
 
-      <div className="flex h-[calc(100vh-65px)]">
-        <aside className="w-80 flex-shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-y-auto">
-          <div className="p-5 space-y-5">
+      <div className="flex flex-col md:flex-row h-[calc(100vh-65px)]">
+<aside className="w-full md:w-80 flex-shrink-0 border-r-0 md:border-r border-b md:border-b-0 border-slate-200 bg-white flex flex-col overflow-y-auto max-h-[50vh] md:max-h-none">          <div className="p-5 space-y-5">
             <div className="flex gap-2">
               <button onClick={() => setBulkMode(false)}
                 className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all ${!bulkMode ? "bg-orange-500 text-white border-orange-500" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
