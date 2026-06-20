@@ -1,4 +1,12 @@
+import { useState } from "react";
 export default function Landing({ onStart }) {
+  const [desi, setDesi] = useState({ en: "", boy: "", yukseklik: "", agirlik: "" });
+const en = parseFloat(desi.en) || 0;
+const boy = parseFloat(desi.boy) || 0;
+const yukseklik = parseFloat(desi.yukseklik) || 0;
+const agirlik = parseFloat(desi.agirlik) || 0;
+const hesaplananDesi = (en * boy * yukseklik) / 3000;
+const kargoAgirligi = Math.max(hesaplananDesi, agirlik);
   return (
     <div className="min-h-screen bg-white font-sans">
       {/* Header */}
@@ -30,6 +38,57 @@ export default function Landing({ onStart }) {
           Ücretsiz Dene →
         </button>
 <p className="text-sm font-medium text-slate-500 mt-3">✓ 3 ücretsiz analiz hakkı &nbsp;•&nbsp; ✓ Kredi kartı gerekmez &nbsp;•&nbsp; ✓ 30 saniyede kayıt</p>
+      </section>
+      {/* Desi Hesaplama */}
+      <section className="max-w-3xl mx-auto px-6 pb-20">
+        <div className="rounded-3xl bg-gradient-to-br from-orange-50 via-white to-blue-50 border border-orange-100 p-6 md:p-8 shadow-sm">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">📦</span>
+            <h3 className="text-lg font-bold text-slate-900">Ücretsiz Kargo Desi Hesaplama</h3>
+          </div>
+          <p className="text-sm text-slate-500 mb-6">Ürününüzün boyutlarını girin, kargo ücretine esas ağırlığı anında görün.</p>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">En (cm)</label>
+              <input type="number" min="0" value={desi.en} onChange={e => setDesi(d => ({ ...d, en: e.target.value }))}
+                placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Boy (cm)</label>
+              <input type="number" min="0" value={desi.boy} onChange={e => setDesi(d => ({ ...d, boy: e.target.value }))}
+                placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Yükseklik (cm)</label>
+              <input type="number" min="0" value={desi.yukseklik} onChange={e => setDesi(d => ({ ...d, yukseklik: e.target.value }))}
+                placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Ağırlık (kg)</label>
+              <input type="number" min="0" value={desi.agirlik} onChange={e => setDesi(d => ({ ...d, agirlik: e.target.value }))}
+                placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-orange-400" />
+            </div>
+          </div>
+
+          {(en > 0 && boy > 0 && yukseklik > 0) && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-white border border-slate-100 p-4 text-center">
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Hesaplanan Desi</p>
+                <p className="text-2xl font-bold text-slate-900">{hesaplananDesi.toFixed(2)}</p>
+              </div>
+              <div className="rounded-2xl bg-orange-500 p-4 text-center">
+                <p className="text-xs text-orange-100 font-medium uppercase tracking-wider mb-1">Kargo Ağırlığı</p>
+                <p className="text-2xl font-bold text-white">{kargoAgirligi.toFixed(2)} kg</p>
+              </div>
+            </div>
+          )}
+          <p className="text-xs text-slate-400 mt-4 text-center">Desi = (En × Boy × Yükseklik) ÷ 3000 • Kargo ücreti, gerçek ağırlık ile desi ağırlığından büyük olanına göre hesaplanır.</p>
+        </div>
       </section>
 
       {/* Nasıl çalışır */}
