@@ -29,7 +29,8 @@ export default function Landing({ onStart }) {
           className="px-8 py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg transition-all shadow-lg shadow-orange-200">
           Ücretsiz Dene →
         </button>
-<p className="text-sm text-slate-400 mt-3">3 ücretsiz analiz hakkı • Kayıt 30 saniye</p>      </section>
+<p className="text-sm font-medium text-slate-500 mt-3">✓ 3 ücretsiz analiz hakkı &nbsp;•&nbsp; ✓ Kredi kartı gerekmez &nbsp;•&nbsp; ✓ 30 saniyede kayıt</p>
+      </section>
 
       {/* Nasıl çalışır */}
       <section className="bg-slate-50 py-20 px-6">
