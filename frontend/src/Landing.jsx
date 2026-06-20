@@ -29,8 +29,7 @@ export default function Landing({ onStart }) {
           className="px-8 py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg transition-all shadow-lg shadow-orange-200">
           Ücretsiz Dene →
         </button>
-        <p className="text-sm text-slate-400 mt-3">Kayıt gerekmez • 5 ücretsiz analiz</p>
-      </section>
+<p className="text-sm text-slate-400 mt-3">3 ücretsiz analiz hakkı • Kayıt 30 saniye</p>      </section>
 
       {/* Nasıl çalışır */}
       <section className="bg-slate-50 py-20 px-6">
@@ -81,7 +80,7 @@ export default function Landing({ onStart }) {
           <h2 className="text-2xl font-bold text-slate-900 text-center mb-12">Fiyatlandırma</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { name: "Ücretsiz", price: "0₺", period: "/ay", features: ["5 analiz/ay", "Tekli analiz", "Tüm platformlar"], cta: "Hemen Başla", highlight: false },
+              { name: "Ücretsiz", price: "0₺", period: "/ay", features: ["3 analiz/ay", "Tekli analiz", "Tüm platformlar"], cta: "Hemen Başla", highlight: false },
               { name: "Başlangıç", price: "149₺", period: "/ay", features: ["100 analiz/ay", "Toplu analiz", "Excel export", "Öncelikli destek"], cta: "Başlat", highlight: true },
               { name: "Pro", price: "349₺", period: "/ay", features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "7/24 destek"], cta: "Başlat", highlight: false },
             ].map((plan, i) => (
