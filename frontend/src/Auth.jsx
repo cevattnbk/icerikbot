@@ -25,7 +25,7 @@ export default function Auth({ onAuth }) {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ email }),
-}).catch(() => {});
+}).then(r => r.json()).then(d => console.log("Email sonucu:", d)).catch(e => console.error("Email hatası:", e));
         setSuccess("Kayıt başarılı! Email adresine doğrulama linki gönderildi.");
       }
     } catch (e) {
