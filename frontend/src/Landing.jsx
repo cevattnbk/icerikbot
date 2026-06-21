@@ -2,6 +2,20 @@ import { useState } from "react";
 export default function Landing({ onStart }) {
   const [desi, setDesi] = useState({ en: "", boy: "", yukseklik: "", agirlik: "" });
 const [desiOpen, setDesiOpen] = useState(false);
+const [karOpen, setKarOpen] = useState(false);
+const [kar, setKar] = useState({ alis: "", satis: "", komisyon: "", kargo: "", ekstra: "", kdv: "20" });
+const alisFiyati = parseFloat(kar.alis) || 0;
+const satisFiyati = parseFloat(kar.satis) || 0;
+const komisyonOrani = parseFloat(kar.komisyon) || 0;
+const kargoUcreti = parseFloat(kar.kargo) || 0;
+const ekstraMasraf = parseFloat(kar.ekstra) || 0;
+const kdvOrani = parseFloat(kar.kdv) || 0;
+
+const komisyonTutari = satisFiyati * (komisyonOrani / 100);
+const kdvTutari = satisFiyati * (kdvOrani / 100);
+const toplamMasraf = alisFiyati + komisyonTutari + kdvTutari + kargoUcreti + ekstraMasraf;
+const netKarZarar = satisFiyati - toplamMasraf;
+const karMarji = satisFiyati > 0 ? (netKarZarar / satisFiyati) * 100 : 0;
   const en = parseFloat(desi.en) || 0;
 const boy = parseFloat(desi.boy) || 0;
 const yukseklik = parseFloat(desi.yukseklik) || 0;
@@ -98,6 +112,91 @@ const kargoAgirligi = Math.max(hesaplananDesi, agirlik);
     <p className="text-xs text-slate-400 mt-4 text-center">Desi = (En × Boy × Yükseklik) ÷ 3000 • Kargo ücreti, gerçek ağırlık ile desi ağırlığından büyük olanına göre hesaplanır.</p>
   </>
 )}
+        </div>
+      </section>
+      {/* Kar/Zarar Hesaplama */}
+      <section className="max-w-3xl mx-auto px-6 pb-20">
+        <div className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-orange-50 border border-emerald-100 p-6 md:p-8 shadow-sm">
+          <button onClick={() => setKarOpen(o => !o)} className="w-full flex items-center justify-between text-left">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">💰</span>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Ücretsiz Kâr/Zarar Hesaplama</h3>
+                <p className="text-sm text-slate-500">Komisyon, KDV ve masrafları gir, net kârını anında gör.</p>
+              </div>
+            </div>
+            <span className={`text-slate-400 text-xl transition-transform flex-shrink-0 ml-2 ${karOpen ? "rotate-180" : ""}`}>⌄</span>
+          </button>
+
+          {karOpen && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 mt-6">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Alış Fiyatı (₺)</label>
+                  <input type="number" min="0" value={kar.alis} onChange={e => setKar(k => ({ ...k, alis: e.target.value }))}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Satış Fiyatı (₺)</label>
+                  <input type="number" min="0" value={kar.satis} onChange={e => setKar(k => ({ ...k, satis: e.target.value }))}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Komisyon (%)</label>
+                  <input type="number" min="0" value={kar.komisyon} onChange={e => setKar(k => ({ ...k, komisyon: e.target.value }))}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Kargo Ücreti (₺)</label>
+                  <input type="number" min="0" value={kar.kargo} onChange={e => setKar(k => ({ ...k, kargo: e.target.value }))}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Ekstra Masraf (₺)</label>
+                  <input type="number" min="0" value={kar.ekstra} onChange={e => setKar(k => ({ ...k, ekstra: e.target.value }))}
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">KDV Oranı</label>
+                  <select value={kar.kdv} onChange={e => setKar(k => ({ ...k, kdv: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-400">
+                    <option value="1">%1</option>
+                    <option value="10">%10</option>
+                    <option value="20">%20</option>
+                  </select>
+                </div>
+              </div>
+
+              {satisFiyati > 0 && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-white border border-slate-100 p-4 text-center">
+                    <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Komisyon Tutarı</p>
+                    <p className="text-xl font-bold text-slate-900">{komisyonTutari.toFixed(2)} ₺</p>
+                  </div>
+                  <div className="rounded-2xl bg-white border border-slate-100 p-4 text-center">
+                    <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">KDV Tutarı</p>
+                    <p className="text-xl font-bold text-slate-900">{kdvTutari.toFixed(2)} ₺</p>
+                  </div>
+                  <div className={`rounded-2xl p-4 text-center ${netKarZarar >= 0 ? "bg-emerald-500" : "bg-red-500"}`}>
+                    <p className={`text-xs font-medium uppercase tracking-wider mb-1 ${netKarZarar >= 0 ? "text-emerald-100" : "text-red-100"}`}>
+                      {netKarZarar >= 0 ? "Net Kâr 🎉" : "Net Zarar ⚠️"}
+                    </p>
+                    <p className="text-xl font-bold text-white">{Math.abs(netKarZarar).toFixed(2)} ₺</p>
+                  </div>
+                  <div className={`rounded-2xl p-4 text-center ${karMarji >= 0 ? "bg-emerald-50 border border-emerald-200" : "bg-red-50 border border-red-200"}`}>
+                    <p className={`text-xs font-medium uppercase tracking-wider mb-1 ${karMarji >= 0 ? "text-emerald-600" : "text-red-600"}`}>Kâr Marjı</p>
+                    <p className={`text-xl font-bold ${karMarji >= 0 ? "text-emerald-700" : "text-red-700"}`}>%{karMarji.toFixed(1)}</p>
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-slate-400 mt-4 text-center">Net Kâr = Satış Fiyatı − (Alış + Komisyon + KDV + Kargo + Ekstra Masraf)</p>
+            </>
+          )}
         </div>
       </section>
 
