@@ -139,6 +139,9 @@ const [bulkLoading, setBulkLoading] = useState(false);
 const [bulkProgress, setBulkProgress] = useState(0);
 const [credits, setCredits] = useState(null);
 const [manualMode, setManualMode] = useState(false);
+const [imageMode, setImageMode] = useState(false);
+const [imageFile, setImageFile] = useState(null);
+const [imagePreview, setImagePreview] = useState(null);
 const [manualForm, setManualForm] = useState({
   name: "",
   brand: "",
@@ -274,6 +277,37 @@ if (r.product?.name) {
       setBulkLoading(false);
     }
   };
+  const handleImageAnalyze = async () => {
+  if (!imageFile) return;
+  if (credits !== null && credits <= 0) {
+    setShowPlans(true);
+    return;
+  }
+  setLoading(true); setError(""); setResult(null);
+  try {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    formData.append("platform", platform);
+    formData.append("tone", tone);
+    const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze-image", {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const r = await res.json();
+    setResult(r);
+    setActiveTab("description");
+    if (credits !== null && credits > 0) {
+      const newCredits = credits - 1;
+      setCredits(newCredits);
+      await supabase.from("profiles").update({ credits: newCredits }).eq("id", user.id);
+    }
+  } catch (e) {
+    setError(e.message || "Bir hata oluştu.");
+  } finally {
+    setLoading(false);
+  }
+};
   const tabs = [
     { id: "description", label: "Açıklama", icon: "star" },
     { id: "seo", label: "SEO", icon: "zap" },
@@ -322,6 +356,10 @@ if (r.product?.name) {
                 Toplu
               </button>
             </div>
+            <button onClick={() => setImageMode(m => !m)}
+              className={`w-full py-2 rounded-xl text-sm font-medium border transition-all flex items-center justify-center gap-2 ${imageMode ? "bg-orange-500 text-white border-orange-500" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
+              📷 {imageMode ? "Görsel Modunda" : "Görselden Üret"}
+            </button>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Platform</label>
               <div className="grid grid-cols-2 gap-2">
@@ -334,6 +372,41 @@ if (r.product?.name) {
               </div>
             </div>
 
+            {imageMode && (
+  <div>
+    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Ürün Görseli</label>
+    <div
+      onClick={() => document.getElementById("imageInput").click()}
+      onDragOver={e => e.preventDefault()}
+      onDrop={e => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith("image/")) {
+          setImageFile(file);
+          setImagePreview(URL.createObjectURL(file));
+        }
+      }}
+      className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center cursor-pointer hover:border-orange-400 transition-all">
+      {imagePreview ? (
+        <img src={imagePreview} alt="preview" className="w-full h-32 object-contain rounded-lg" />
+      ) : (
+        <div className="py-4">
+          <p className="text-2xl mb-1">📷</p>
+          <p className="text-sm text-slate-500">Görsel sürükle veya tıkla</p>
+          <p className="text-xs text-slate-400 mt-1">JPG, PNG, WebP</p>
+        </div>
+      )}
+    </div>
+    <input id="imageInput" type="file" accept="image/*" className="hidden"
+      onChange={e => {
+        const file = e.target.files[0];
+        if (file) {
+          setImageFile(file);
+          setImagePreview(URL.createObjectURL(file));
+        }
+      }} />
+  </div>
+)}
             {!bulkMode ? (
   <div>
     <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Ürün Linki</label>
@@ -388,11 +461,13 @@ if (r.product?.name) {
               </div>
             </div>
 
-            <button onClick={bulkMode ? handleBulkAnalyze : handleAnalyze}
-  disabled={bulkMode ? bulkLoading : (loading || !url.trim())}
+            <button onClick={imageMode ? handleImageAnalyze : bulkMode ? handleBulkAnalyze : handleAnalyze}
+  disabled={imageMode ? (loading || !imageFile) : bulkMode ? bulkLoading : (loading || !url.trim())}
   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all">
-  {bulkMode
-   ? (bulkLoading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />Analiz ediliyor...</> : <><Icon name="sparkles" className="w-4 h-4" />Toplu Analiz Başlat</>)
+  {imageMode
+    ? (loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />Görsel analiz ediliyor...</> : <><Icon name="sparkles" className="w-4 h-4" />Görseli Analiz Et</>)
+    : bulkMode
+    ? (bulkLoading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />Analiz ediliyor...</> : <><Icon name="sparkles" className="w-4 h-4" />Toplu Analiz Başlat</>)
     : (loading ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />İçerikler hazırlanıyor...</> : <><Icon name="sparkles" className="w-4 h-4" />İçerik Üret</>)
   }
 </button>

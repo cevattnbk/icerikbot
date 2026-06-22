@@ -5,6 +5,8 @@ import * as cheerio from "cheerio";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import multer from "multer";
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app = express();
 app.use(cors({
@@ -185,6 +187,84 @@ function scrapeGeneric($, html) {
   return { name, brand, price, image, description, features };
 }
 
+async function analyzeImage(base64Image, mediaType, platform, tone) {
+  const platformNotes = {
+    trendyol: "Trendyol ürün sayfası. Marka adı başa konulur, teknik özellikler sıralanır.",
+    shopify: "Shopify mağazası. Hikaye anlatımı önemli.",
+    hepsiburada: "Hepsiburada ürün sayfası. Sade ve teknik odaklı açıklama.",
+    amazon: "Amazon TR. Bullet point özellikler 5 madde.",
+  };
+
+  const prompt = `Sen deneyimli bir Türk e-ticaret içerik uzmanısın. Verilen ürün fotoğrafına bakarak profesyonel içerikler üret.
+
+Platform: ${platform} — ${platformNotes[platform] || ""}
+İstenen Ton: ${tone}
+
+Fotoğraftaki ürünü dikkatlice incele: ne olduğunu, rengini, malzemesini, tahmini özelliklerini belirle.
+
+Sadece JSON döndür, başka hiçbir şey yazma, markdown kullanma:
+{
+  "description": {
+    "platform": "300-500 kelimelik ürün açıklaması",
+    "short": "50-80 kelimelik kısa özet",
+    "bullets": ["Özellik 1", "Özellik 2", "Özellik 3", "Özellik 4", "Özellik 5", "Özellik 6"]
+  },
+  "seo": {
+    "title": "SEO title maks 60 karakter",
+    "meta": "155 karakter meta açıklama",
+    "keywords": ["kelime1", "kelime2", "kelime3", "kelime4", "kelime5", "kelime6"],
+    "longtail": ["uzun kuyruk 1", "uzun kuyruk 2", "uzun kuyruk 3", "uzun kuyruk 4"],
+    "trendyolTags": ["etiket1", "etiket2", "etiket3", "etiket4", "etiket5"]
+  },
+  "social": {
+    "instagram": [
+      { "text": "Instagram post", "hashtags": ["tag1","tag2","tag3","tag4","tag5"], "note": "En iyi saat: 19:00-21:00" },
+      { "text": "Alternatif Instagram post", "hashtags": ["tag1","tag2","tag3"], "note": "Story için uygun" }
+    ],
+    "twitterx": [
+      { "text": "280 karakter tweet", "hashtags": ["tag1","tag2"] },
+      { "text": "Alternatif tweet", "hashtags": ["tag1","tag2"] }
+    ],
+    "facebook": [
+      { "text": "Facebook post", "hashtags": ["tag1","tag2","tag3"], "note": "Link ekle" }
+    ],
+    "linkedin": [
+      { "text": "LinkedIn post", "hashtags": ["tag1","tag2"], "note": "Mesai saatinde paylaş" }
+    ]
+  },
+  "detectedProduct": { "name": "Tespit edilen ürün adı", "brand": "Tespit edilen marka (varsa)", "estimatedPrice": "Tahmini fiyat aralığı (varsa belirtme)" }
+}`;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 4000,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mediaType, data: base64Image } },
+          { type: "text", text: prompt }
+        ]
+      }],
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Anthropic Vision API hatasi: ${err}`);
+  }
+
+  const data = await response.json();
+  const raw = data.content?.[0]?.text || "";
+  const jsonStr = raw.replace(/^```json\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+  return JSON.parse(jsonStr);
+}
 async function generateContent(product, platform, tone) {
   const platformNotes = {
     trendyol: "Trendyol ürün sayfası. Marka adı başa konulur, teknik özellikler sıralanır.",
@@ -261,6 +341,31 @@ Sadece JSON döndür, başka hiçbir şey yazma, markdown kullanma:
   return JSON.parse(jsonStr);
 }
 
+app.post("/api/analyze-image", upload.single("image"), async (req, res) => {
+  const { platform = "trendyol", tone = "Profesyonel" } = req.body;
+  if (!req.file) return res.status(400).json({ error: "Görsel gerekli" });
+  try {
+    const base64Image = req.file.buffer.toString("base64");
+    const mediaType = req.file.mimetype;
+    console.log(`📷 Görsel analiz ediliyor: ${req.file.originalname}`);
+    const aiContent = await analyzeImage(base64Image, mediaType, platform, tone);
+    console.log(`✅ Görsel içeriği üretildi`);
+    res.json({
+      product: {
+        name: aiContent.detectedProduct?.name || "Tespit edilemedi",
+        brand: aiContent.detectedProduct?.brand || "",
+        price: aiContent.detectedProduct?.estimatedPrice || "",
+        image: `data:${mediaType};base64,${base64Image}`,
+      },
+      description: aiContent.description,
+      seo: aiContent.seo,
+      social: aiContent.social,
+    });
+  } catch (err) {
+    console.error("❌ Görsel analiz hatası:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/analyze", async (req, res) => {
   const { url, platform = "trendyol", tone = "Profesyonel" } = req.body;
   if (!url) return res.status(400).json({ error: "URL gerekli" });
