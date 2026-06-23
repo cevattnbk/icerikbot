@@ -87,6 +87,13 @@ export default function App({ onBack, user, onAdmin }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const inputRef = useRef();
+  const [bannerForm, setBannerForm] = useState({
+  title: "",
+  price: "",
+  slogan: "",
+  color: "#06b6d4",
+  template: "instagram",
+});
 
   useEffect(() => {
     if (user) {
@@ -204,10 +211,11 @@ export default function App({ onBack, user, onAdmin }) {
   };
 
   const tabs = [
-    { id: "description", label: "Açıklama", icon: "⭐" },
-    { id: "seo", label: "SEO", icon: "⚡" },
-    { id: "social", label: "Sosyal Medya", icon: "📱" },
-  ];
+  { id: "description", label: "Açıklama", icon: "⭐" },
+  { id: "seo", label: "SEO", icon: "⚡" },
+  { id: "social", label: "Sosyal Medya", icon: "📱" },
+  { id: "banner", label: "Banner", icon: "🎨" },
+];
 
   return (
     <div className="min-h-screen bg-[#0b121f] text-white font-sans">
@@ -561,6 +569,144 @@ export default function App({ onBack, user, onAdmin }) {
                 ))}
               </div>
             )}
+            {activeTab === "banner" && (
+  <div className="space-y-6">
+    <div className="grid md:grid-cols-2 gap-6">
+      {/* Form */}
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold text-white">Banner Bilgileri</h3>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Ürün Adı / Başlık</label>
+          <input type="text" value={bannerForm.title}
+            onChange={e => setBannerForm(f => ({ ...f, title: e.target.value }))}
+            placeholder="Örn: Premium Güneş Gözlüğü"
+            className="w-full px-3 py-2.5 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Fiyat</label>
+          <input type="text" value={bannerForm.price}
+            onChange={e => setBannerForm(f => ({ ...f, price: e.target.value }))}
+            placeholder="Örn: 299₺"
+            className="w-full px-3 py-2.5 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Slogan / Alt Başlık</label>
+          <input type="text" value={bannerForm.slogan}
+            onChange={e => setBannerForm(f => ({ ...f, slogan: e.target.value }))}
+            placeholder="Örn: Ücretsiz kargo • Hızlı teslimat"
+            className="w-full px-3 py-2.5 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Vurgu Rengi</label>
+          <div className="flex gap-2 flex-wrap">
+            {["#06b6d4", "#8b5cf6", "#f97316", "#10b981", "#f43f5e", "#3b82f6"].map(c => (
+              <button key={c} onClick={() => setBannerForm(f => ({ ...f, color: c }))}
+                style={{ backgroundColor: c }}
+                className={`w-8 h-8 rounded-full border-2 transition-all ${bannerForm.color === c ? "border-white scale-110" : "border-transparent"}`} />
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Şablon</label>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: "instagram", label: "Instagram Karesi" },
+              { id: "story", label: "Story (9:16)" },
+              { id: "trendyol", label: "Trendyol Banner" },
+              { id: "wide", label: "Geniş Banner" },
+            ].map(t => (
+              <button key={t.id} onClick={() => setBannerForm(f => ({ ...f, template: t.id }))}
+                className={`py-2 px-3 rounded-lg text-xs font-medium border transition-all ${bannerForm.template === t.id ? "border-cyan-500/50 bg-cyan-500/10 text-cyan-400" : "border-slate-700 text-slate-400 hover:border-slate-600"}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={() => {
+            const svg = document.getElementById("bannerSvg");
+            if (!svg) return;
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
+            const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            img.onload = () => {
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx.drawImage(img, 0, 0);
+              URL.revokeObjectURL(url);
+              const a = document.createElement("a");
+              a.download = "banner.png";
+              a.href = canvas.toDataURL("image/png");
+              a.click();
+            };
+            img.src = url;
+          }}
+          className="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] font-semibold text-sm transition-all">
+          ⬇ PNG Olarak İndir
+        </button>
+      </div>
+
+      {/* Önizleme */}
+      <div>
+        <h3 className="text-sm font-semibold text-white mb-3">Önizleme</h3>
+        <div className="flex items-center justify-center bg-slate-800 rounded-2xl p-4 border border-slate-700">
+          {bannerForm.template === "instagram" && (
+            <svg id="bannerSvg" width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="400" fill="#0b121f"/>
+              <rect width="400" height="6" fill={bannerForm.color}/>
+              <rect y="394" width="400" height="6" fill={bannerForm.color}/>
+              <rect x="30" y="80" width="340" height="2" fill={bannerForm.color} opacity="0.3"/>
+              <rect x="30" y="318" width="340" height="2" fill={bannerForm.color} opacity="0.3"/>
+              <text x="200" y="160" textAnchor="middle" fill="white" fontSize="28" fontWeight="bold" fontFamily="Arial">{bannerForm.title || "Ürün Adı"}</text>
+              <text x="200" y="210" textAnchor="middle" fill={bannerForm.color} fontSize="42" fontWeight="bold" fontFamily="Arial">{bannerForm.price || "₺"}</text>
+              <text x="200" y="260" textAnchor="middle" fill="#94a3b8" fontSize="16" fontFamily="Arial">{bannerForm.slogan || "Slogan"}</text>
+              <rect x="130" y="290" width="140" height="36" rx="18" fill={bannerForm.color}/>
+              <text x="200" y="313" textAnchor="middle" fill="#0b121f" fontSize="14" fontWeight="bold" fontFamily="Arial">Hemen Al →</text>
+            </svg>
+          )}
+          {bannerForm.template === "story" && (
+            <svg id="bannerSvg" width="225" height="400" xmlns="http://www.w3.org/2000/svg">
+              <rect width="225" height="400" fill="#0b121f"/>
+              <rect width="225" height="4" fill={bannerForm.color}/>
+              <rect y="396" width="225" height="4" fill={bannerForm.color}/>
+              <circle cx="112" cy="100" r="50" fill={bannerForm.color} opacity="0.1" stroke={bannerForm.color} strokeWidth="1"/>
+              <text x="112" y="107" textAnchor="middle" fill={bannerForm.color} fontSize="30" fontFamily="Arial">✨</text>
+              <text x="112" y="190" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold" fontFamily="Arial">{bannerForm.title || "Ürün Adı"}</text>
+              <text x="112" y="240" textAnchor="middle" fill={bannerForm.color} fontSize="32" fontWeight="bold" fontFamily="Arial">{bannerForm.price || "₺"}</text>
+              <text x="112" y="280" textAnchor="middle" fill="#94a3b8" fontSize="12" fontFamily="Arial">{bannerForm.slogan || "Slogan"}</text>
+              <rect x="62" y="310" width="100" height="32" rx="16" fill={bannerForm.color}/>
+              <text x="112" y="331" textAnchor="middle" fill="#0b121f" fontSize="12" fontWeight="bold" fontFamily="Arial">Hemen Al →</text>
+            </svg>
+          )}
+          {bannerForm.template === "trendyol" && (
+            <svg id="bannerSvg" width="400" height="200" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="200" fill="#0b121f"/>
+              <rect width="8" height="200" fill={bannerForm.color}/>
+              <text x="30" y="80" fill="white" fontSize="22" fontWeight="bold" fontFamily="Arial">{bannerForm.title || "Ürün Adı"}</text>
+              <text x="30" y="120" fill={bannerForm.color} fontSize="36" fontWeight="bold" fontFamily="Arial">{bannerForm.price || "₺"}</text>
+              <text x="30" y="150" fill="#94a3b8" fontSize="13" fontFamily="Arial">{bannerForm.slogan || "Slogan"}</text>
+              <rect x="280" y="70" width="100" height="36" rx="8" fill={bannerForm.color}/>
+              <text x="330" y="93" textAnchor="middle" fill="#0b121f" fontSize="13" fontWeight="bold" fontFamily="Arial">Satın Al</text>
+            </svg>
+          )}
+          {bannerForm.template === "wide" && (
+            <svg id="bannerSvg" width="400" height="150" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="150" fill="#0b121f"/>
+              <rect width="400" height="4" fill={bannerForm.color}/>
+              <rect y="146" width="400" height="4" fill={bannerForm.color}/>
+              <text x="200" y="55" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Arial">{bannerForm.title || "Ürün Adı"}</text>
+              <text x="200" y="95" textAnchor="middle" fill={bannerForm.color} fontSize="30" fontWeight="bold" fontFamily="Arial">{bannerForm.price || "₺"}</text>
+              <text x="200" y="125" textAnchor="middle" fill="#94a3b8" fontSize="12" fontFamily="Arial">{bannerForm.slogan || "Slogan"}</text>
+            </svg>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
           </div>
         </main>
       </div>
