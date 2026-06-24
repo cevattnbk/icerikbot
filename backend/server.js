@@ -17,6 +17,24 @@ app.use(express.json());
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const SHOPIER_API_KEY = process.env.SHOPIER_API_KEY;
 const SHOPIER_API_SECRET = process.env.SHOPIER_API_SECRET;
+async function validateApiKey(req, res, next) {
+  const apiKey = req.headers["x-api-key"];
+  if (!apiKey) return next();
+  
+  const { data } = await supabase
+    .from("api_keys")
+    .select("user_id, is_active")
+    .eq("key", apiKey)
+    .eq("is_active", true)
+    .single();
+  
+  if (!data) return res.status(401).json({ error: "Geçersiz API key" });
+  
+  await supabase.from("api_keys").update({ last_used_at: new Date().toISOString() }).eq("key", apiKey);
+  
+  req.apiUserId = data.user_id;
+  next();
+}
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY

@@ -87,6 +87,9 @@ export default function App({ onBack, user, onAdmin }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const inputRef = useRef();
+  const [apiKeys, setApiKeys] = useState([]);
+const [apiKeyLoading, setApiKeyLoading] = useState(false);
+const [newKeyName, setNewKeyName] = useState("");
   const [bannerForm, setBannerForm] = useState({
   title: "",
   price: "",
@@ -95,6 +98,12 @@ export default function App({ onBack, user, onAdmin }) {
   template: "instagram",
 });
 
+  useEffect(() => {
+    if (user) {
+      supabase.from("profiles").select("credits").eq("id", user.id).single()
+        .then(({ data }) => { if (data) setCredits(data.credits); });
+    }
+  }, [user]);
   useEffect(() => {
     if (user) {
       supabase.from("profiles").select("credits").eq("id", user.id).single()
@@ -215,6 +224,7 @@ export default function App({ onBack, user, onAdmin }) {
   { id: "seo", label: "SEO", icon: "⚡" },
   { id: "social", label: "Sosyal Medya", icon: "📱" },
   { id: "banner", label: "Banner", icon: "🎨" },
+  { id: "api", label: "API", icon: "🔑" },
 ];
 
   return (
@@ -703,6 +713,79 @@ export default function App({ onBack, user, onAdmin }) {
             </svg>
           )}
         </div>
+      </div>
+    </div>
+  </div>
+)}
+{activeTab === "api" && (
+  <div className="space-y-6 max-w-2xl">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <h3 className="text-white font-semibold mb-1">🔑 API Erişimi</h3>
+      <p className="text-slate-400 text-sm mb-6">API key'inizi kullanarak kendi sisteminizden içerik üretebilirsiniz.</p>
+
+      {/* Yeni key oluştur */}
+      <div className="flex gap-2 mb-6">
+        <input type="text" value={newKeyName} onChange={e => setNewKeyName(e.target.value)}
+          placeholder="Key adı (örn: Mağazam)"
+          className="flex-1 px-3 py-2.5 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        <button onClick={async () => {
+            setApiKeyLoading(true);
+            const { data } = await supabase.from("api_keys").insert({
+              user_id: user.id, name: newKeyName || "Varsayılan"
+            }).select().single();
+            if (data) { setApiKeys(k => [...k, data]); setNewKeyName(""); }
+            setApiKeyLoading(false);
+          }}
+          disabled={apiKeyLoading}
+          className="px-4 py-2.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] font-semibold text-sm transition-all disabled:opacity-40">
+          {apiKeyLoading ? "..." : "Oluştur"}
+        </button>
+      </div>
+
+      {/* Key listesi */}
+      {apiKeys.length === 0 ? (
+        <p className="text-slate-500 text-sm text-center py-8">Henüz API key oluşturmadın.</p>
+      ) : (
+        <div className="space-y-3">
+          {apiKeys.map((k, i) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800 border border-slate-700">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-400 mb-1">{k.name}</p>
+                <p className="text-sm font-mono text-cyan-400 truncate">{k.key}</p>
+              </div>
+              <button onClick={() => navigator.clipboard.writeText(k.key)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-slate-600 text-slate-400 hover:text-white hover:border-slate-500 transition-all flex-shrink-0">
+                Kopyala
+              </button>
+              <button onClick={async () => {
+                  await supabase.from("api_keys").update({ is_active: false }).eq("id", k.id);
+                  setApiKeys(keys => keys.filter(key => key.id !== k.id));
+                }}
+                className="text-xs px-3 py-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0">
+                Sil
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    {/* Kullanım kılavuzu */}
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <h3 className="text-white font-semibold mb-4">📖 Kullanım</h3>
+      <p className="text-slate-400 text-sm mb-3">Aşağıdaki formatta POST isteği gönder:</p>
+      <div className="bg-slate-950 rounded-xl p-4 font-mono text-xs text-slate-300 overflow-x-auto">
+        <p className="text-cyan-400">POST</p>
+        <p className="text-slate-500 mb-2">https://icerikbot-production.up.railway.app/api/analyze</p>
+        <p className="text-slate-500">Headers:</p>
+        <p className="ml-2">x-api-key: <span className="text-cyan-400">ib_your_key_here</span></p>
+        <p className="ml-2">Content-Type: <span className="text-green-400">application/json</span></p>
+        <p className="text-slate-500 mt-2">Body:</p>
+        <p className="ml-2">{"{"}</p>
+        <p className="ml-4">"url": <span className="text-green-400">"https://trendyol.com/..."</span>,</p>
+        <p className="ml-4">"platform": <span className="text-green-400">"trendyol"</span>,</p>
+        <p className="ml-4">"tone": <span className="text-green-400">"Profesyonel"</span></p>
+        <p className="ml-2">{"}"}</p>
       </div>
     </div>
   </div>
