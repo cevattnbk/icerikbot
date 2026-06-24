@@ -282,11 +282,12 @@ export default function Landing({ onStart }) {
           <p className="text-cyan-400 text-xs font-semibold uppercase tracking-widest mb-3">FİYATLANDIRMA</p>
           <h2 className="text-3xl md:text-4xl font-bold text-white">Şeffaf fiyatlar</h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { name: "Ücretsiz", price: "0₺", period: "/ay", features: ["3 analiz/ay", "Tekli analiz", "Tüm platformlar", "Vision AI"], cta: "Hemen Başla", highlight: false },
-            { name: "Başlangıç", price: "149₺", period: "/ay", features: ["100 analiz/ay", "Toplu analiz", "Vision AI", "Öncelikli destek"], cta: "Başlat", highlight: true },
-            { name: "Pro", price: "349₺", period: "/ay", features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "7/24 destek"], cta: "Başlat", highlight: false },
+{ name: "Başlangıç", price: "199₺", period: "/ay", features: ["100 analiz/ay", "Toplu analiz", "Vision AI", "Banner aracı", "Öncelikli destek"], cta: "Başlat", highlight: true },
+{ name: "Pro", price: "499₺", period: "/ay", features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "Banner aracı", "7/24 destek"], cta: "Başlat", highlight: false },
+{ name: "Ajans", price: "1.499₺", period: "/ay", features: ["Sınırsız analiz", "API erişimi", "Toplu banner", "White label", "Özel destek"], cta: "İletişime Geç", highlight: false },
           ].map((plan, i) => (
             <div key={i} className={`rounded-2xl p-6 border transition-all ${plan.highlight ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_25px_rgba(6,182,212,0.1)]" : "border-slate-800 bg-slate-900/50"}`}>
               {plan.highlight && <div className="text-xs font-semibold text-cyan-400 mb-3">⭐ EN POPÜLER</div>}
