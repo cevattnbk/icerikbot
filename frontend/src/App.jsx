@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import JSZip from "jszip";
 import { supabase } from "./supabase";
 
 function CopyBtn({ text }) {
@@ -90,6 +91,10 @@ export default function App({ onBack, user, onAdmin }) {
   const [apiKeys, setApiKeys] = useState([]);
 const [apiKeyLoading, setApiKeyLoading] = useState(false);
 const [newKeyName, setNewKeyName] = useState("");
+const [bulkBannerItems, setBulkBannerItems] = useState([
+  { title: "", price: "", slogan: "" },
+]);
+const [bulkBannerMode, setBulkBannerMode] = useState(false);
   const [bannerForm, setBannerForm] = useState({
   title: "",
   price: "",
@@ -716,7 +721,59 @@ const [newKeyName, setNewKeyName] = useState("");
       </div>
     </div>
   </div>
-)}
+  )}
+  {/* Toplu Banner */}
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 mt-4">
+      <h3 className="text-white font-semibold mb-4">📦 Toplu Banner Üret</h3>
+      <p className="text-slate-400 text-sm mb-4">Birden fazla ürün için aynı şablonla banner üret, ZIP olarak indir.</p>
+      <div className="space-y-3 mb-4">
+        {bulkBannerItems.map((item, i) => (
+          <div key={i} className="grid grid-cols-3 gap-2 items-center">
+            <input type="text" placeholder="Ürün adı" value={item.title}
+              onChange={e => setBulkBannerItems(items => items.map((it, j) => j === i ? { ...it, title: e.target.value } : it))}
+              className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs focus:outline-none focus:border-cyan-500" />
+            <input type="text" placeholder="Fiyat" value={item.price}
+              onChange={e => setBulkBannerItems(items => items.map((it, j) => j === i ? { ...it, price: e.target.value } : it))}
+              className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs focus:outline-none focus:border-cyan-500" />
+            <input type="text" placeholder="Slogan" value={item.slogan}
+              onChange={e => setBulkBannerItems(items => items.map((it, j) => j === i ? { ...it, slogan: e.target.value } : it))}
+              className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs focus:outline-none focus:border-cyan-500" />
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => setBulkBannerItems(items => [...items, { title: "", price: "", slogan: "" }])}
+          className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 text-sm hover:border-slate-600 transition-all">
+          + Ürün Ekle
+        </button>
+        <button onClick={async () => {
+          const JSZip = (await import("jszip")).default;
+          const zip = new JSZip();
+          for (const item of bulkBannerItems) {
+            if (!item.title) continue;
+            const svgContent = `<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+              <rect width="400" height="400" fill="#0b121f"/>
+              <rect width="400" height="6" fill="${bannerForm.color}"/>
+              <rect y="394" width="400" height="6" fill="${bannerForm.color}"/>
+              <text x="200" y="160" text-anchor="middle" fill="white" font-size="28" font-weight="bold" font-family="Arial">${item.title}</text>
+              <text x="200" y="210" text-anchor="middle" fill="${bannerForm.color}" font-size="42" font-weight="bold" font-family="Arial">${item.price || ""}</text>
+              <text x="200" y="260" text-anchor="middle" fill="#94a3b8" font-size="16" font-family="Arial">${item.slogan || ""}</text>
+              <rect x="130" y="290" width="140" height="36" rx="18" fill="${bannerForm.color}"/>
+              <text x="200" y="313" text-anchor="middle" fill="#0b121f" font-size="14" font-weight="bold" font-family="Arial">Hemen Al</text>
+            </svg>`;
+            zip.file(`${item.title.replace(/\s+/g, "_")}.svg`, svgContent);
+          }
+          const blob = await zip.generateAsync({ type: "blob" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "bannerlar.zip";
+          a.click();
+        }}
+          className="flex-1 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] font-semibold text-sm transition-all">
+          ⬇ Tümünü ZIP İndir
+        </button>
+      </div>
+    </div>
 {activeTab === "api" && (
   <div className="space-y-6 max-w-2xl">
     <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
