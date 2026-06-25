@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 export default function Landing({ onStart }) {
+  const [legalModal, setLegalModal] = useState(null);
   const [desiOpen, setDesiOpen] = useState(false);
   const [desi, setDesi] = useState({ en: "", boy: "", yukseklik: "", agirlik: "" });
   const en = parseFloat(desi.en) || 0;
@@ -34,7 +35,181 @@ export default function Landing({ onStart }) {
     { q: "Verilerim güvende mi?", a: "Evet. Supabase altyapısı ile verileriniz şifrelenmiş ve güvenli şekilde saklanır." },
   ];
 
+  const legalContent = {
+  gizlilik: {
+    title: "Gizlilik Politikası",
+    content: `
+**Son güncelleme:** Haziran 2026
+
+**1. Veri Sorumlusu**
+İçerikBot ("Şirket") olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri sorumlusu sıfatıyla hareket etmekteyiz.
+
+**2. Toplanan Veriler**
+- E-posta adresi (kayıt ve iletişim amacıyla)
+- Kullanılan ürün linkleri (içerik üretimi amacıyla, saklanmamaktadır)
+- Ödeme bilgileri (Shopier altyapısı üzerinden işlenmekte, tarafımızca saklanmamaktadır)
+- Kullanım istatistikleri (hizmet iyileştirme amacıyla)
+
+**3. Verilerin Kullanım Amacı**
+Toplanan veriler; hizmet sunumu, kullanıcı hesabı yönetimi, teknik destek ve yasal yükümlülüklerin yerine getirilmesi amacıyla kullanılmaktadır.
+
+**4. Veri Güvenliği**
+Verileriniz Supabase altyapısında şifrelenmiş olarak saklanmakta, üçüncü şahıslarla paylaşılmamaktadır.
+
+**5. Çerezler**
+Sitemiz yalnızca oturum yönetimi için zorunlu çerezler kullanmaktadır.
+
+**6. İletişim**
+Gizlilik politikamız hakkında sorularınız için: destek@icerikbot.com
+    `
+  },
+  kvkk: {
+    title: "KVKK Aydınlatma Metni",
+    content: `
+**6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Aydınlatma Metni**
+
+**Veri Sorumlusu:** İçerikBot
+
+**1. İşlenen Kişisel Veriler**
+- Kimlik verisi: Ad-soyad (opsiyonel)
+- İletişim verisi: E-posta adresi
+- İşlem güvenliği verisi: Oturum bilgileri, IP adresi
+- Kullanım verisi: Analiz geçmişi, kredi kullanımı
+
+**2. Kişisel Verilerin İşlenme Amacı**
+- Üyelik ve hesap yönetimi
+- Hizmetin sunulması ve geliştirilmesi
+- Yasal yükümlülüklerin yerine getirilmesi
+- Müşteri desteği sağlanması
+
+**3. Kişisel Verilerin Aktarımı**
+Kişisel verileriniz; Supabase (veri tabanı altyapısı) ve Shopier (ödeme altyapısı) ile paylaşılmaktadır. Bu aktarımlar KVKK'nın 8. ve 9. maddeleri kapsamında gerçekleştirilmektedir.
+
+**4. Kişisel Verilerin Saklanma Süresi**
+Verileriniz, üyelik süreniz boyunca ve üyelik sona erdikten sonra yasal yükümlülükler kapsamında en fazla 3 yıl saklanmaktadır.
+
+**5. Haklarınız (KVKK Madde 11)**
+- Kişisel verilerinizin işlenip işlenmediğini öğrenme
+- İşlenmişse buna ilişkin bilgi talep etme
+- Verilerin silinmesini veya yok edilmesini isteme
+- İtiraz etme ve zararın giderilmesini talep etme
+
+**6. Başvuru**
+Haklarınızı kullanmak için: destek@icerikbot.com
+    `
+  },
+  mesafeli: {
+    title: "Mesafeli Satış Sözleşmesi",
+    content: `
+**MESAFELİ SATIŞ SÖZLEŞMESİ**
+
+**Madde 1 - Taraflar**
+Bu sözleşme, İçerikBot ("Satıcı") ile hizmeti satın alan kullanıcı ("Alıcı") arasında akdedilmiştir.
+
+**Madde 2 - Sözleşmenin Konusu**
+İşbu sözleşme, İçerikBot platformunda sunulan dijital yazılım hizmeti aboneliğinin satışına ilişkindir. Satışa konu hizmet; yapay zeka destekli içerik üretimi, SEO optimizasyonu ve sosyal medya içeriği oluşturma kredilerinden oluşmaktadır.
+
+**Madde 3 - Hizmetin Niteliği**
+Satışa konu ürün, elektronik ortamda anında teslim edilen dijital bir hizmettir. Kullanıcının satın alma işlemini tamamlaması ile birlikte hesabına kredi tanımlanmakta ve hizmet kullanıma sunulmaktadır.
+
+**Madde 4 - Cayma Hakkı**
+6502 sayılı Tüketicinin Korunması Hakkında Kanun'un 49. maddesi ve Mesafeli Sözleşmeler Yönetmeliği'nin 15. maddesi uyarınca; dijital içeriklerin ifasına başlanılmış olması halinde cayma hakkı kullanılamaz.
+
+Alıcı, satın alma işlemini onaylaması ile birlikte dijital hizmetin ifasının başladığını ve bu nedenle cayma hakkından feragat ettiğini kabul, beyan ve taahhüt eder.
+
+**Madde 5 - Fiyat ve Ödeme**
+Hizmet bedeli, satın alma anında ekranda gösterilen fiyat üzerinden Shopier ödeme altyapısı aracılığıyla tahsil edilir. Fiyatlara KDV dahildir.
+
+**Madde 6 - Hizmet Süresi**
+Satın alınan kredi paketi, tanımlanma tarihinden itibaren 30 gün süre ile geçerlidir. Süre sonunda kullanılmayan krediler geçerliliğini yitirir.
+
+**Madde 7 - Uyuşmazlık**
+Bu sözleşmeden doğan uyuşmazlıklarda Türkiye Cumhuriyeti mahkemeleri ve icra daireleri yetkilidir.
+
+**Madde 8 - Yürürlük**
+Bu sözleşme, Alıcının satın alma işlemini onaylaması ile yürürlüğe girer.
+    `
+  },
+  kullanim: {
+    title: "Kullanım Koşulları",
+    content: `
+**KULLANIM KOŞULLARI**
+
+**Son güncelleme:** Haziran 2026
+
+**1. Kabul**
+İçerikBot platformunu kullanarak bu koşulları kabul etmiş sayılırsınız.
+
+**2. Hizmet Tanımı**
+İçerikBot, e-ticaret satıcılarına yapay zeka destekli içerik üretimi hizmeti sunan bir SaaS platformudur.
+
+**3. Kullanıcı Yükümlülükleri**
+- Hizmeti yalnızca yasal amaçlarla kullanmak
+- Başkalarının haklarını ihlal etmemek
+- Sistemi aşırı yüklemeye neden olacak işlemler yapmamak
+- Hesap bilgilerini güvende tutmak
+
+**4. Fikri Mülkiyet**
+Platform üzerindeki yazılım, tasarım ve içerikler İçerikBot'a aittir. Yapay zeka tarafından üretilen içerikler kullanıcıya aittir.
+
+**5. Sorumluluk Sınırlaması**
+İçerikBot, yapay zeka tarafından üretilen içeriklerin doğruluğunu garanti etmez. Üretilen içeriklerin kullanımından doğan sorumluluk kullanıcıya aittir.
+
+**6. Hizmet Kesintileri**
+Bakım, güncelleme veya teknik arızalar nedeniyle hizmet geçici olarak kullanılamayabilir. Bu durumlar için tazminat ödenmez.
+
+**7. Değişiklikler**
+İçerikBot bu koşulları önceden bildirimde bulunmaksızın değiştirme hakkını saklı tutar.
+
+**8. İletişim**
+destek@icerikbot.com
+    `
+  },
+  cerez: {
+    title: "Çerez Politikası",
+    content: `
+**ÇEREZ POLİTİKASI**
+
+**1. Çerez Nedir?**
+Çerezler, web sitemizi ziyaret ettiğinizde tarayıcınıza yerleştirilen küçük metin dosyalarıdır.
+
+**2. Kullandığımız Çerezler**
+
+**Zorunlu Çerezler:**
+Oturum yönetimi için kullanılır. Bu çerezler olmadan hizmet çalışmaz. Kullanıcı onayı gerekmez.
+
+**3. Üçüncü Taraf Çerezler**
+Supabase kimlik doğrulama altyapısı oturum çerezleri kullanmaktadır.
+
+**4. Çerez Yönetimi**
+Tarayıcı ayarlarınızdan çerezleri devre dışı bırakabilirsiniz. Ancak bu durumda platforma giriş yapamazsınız.
+
+**5. İletişim**
+destek@icerikbot.com
+    `
+  },
+};
   return (
+    <>
+    {legalModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={() => setLegalModal(null)}>
+    <div className="bg-[#0d1521] border border-slate-800 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="sticky top-0 bg-[#0d1521] border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+        <h2 className="text-white font-bold">{legalContent[legalModal]?.title}</h2>
+        <button onClick={() => setLegalModal(null)} className="text-slate-400 hover:text-white text-2xl leading-none">×</button>
+      </div>
+      <div className="px-6 py-6">
+        {legalContent[legalModal]?.content.split("\n").map((line, i) => (
+          line.startsWith("**") && line.endsWith("**")
+            ? <p key={i} className="font-bold text-white mt-4 mb-1">{line.replace(/\*\*/g, "")}</p>
+            : line.trim() === ""
+            ? <br key={i} />
+            : <p key={i} className="text-slate-400 text-sm leading-relaxed">{line}</p>
+        ))}
+      </div>
+    </div>
+  </div>
+)}
     <div className="min-h-screen bg-[#0b121f] text-white font-sans">
 
       {/* Announcement Bar */}
@@ -351,20 +526,45 @@ export default function Landing({ onStart }) {
         <div className="max-w-6xl mx-auto px-6 py-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             {[
-              { title: "Ürün", links: ["Özellikler", "Vision AI", "Toplu Analiz", "Araçlar"] },
-              { title: "Platform", links: ["Trendyol", "Hepsiburada", "Amazon TR", "Shopify"] },
-              { title: "Hukuki", links: ["Gizlilik Politikası", "Kullanım Koşulları", "Çerez Politikası", "KVKK"] },
-              { title: "Diğer", links: ["SSS", "Destek", "İletişim", "Blog"] },
-            ].map((col, i) => (
-              <div key={i}>
-                <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
-                <ul className="space-y-2">
-                  {col.links.map((link, j) => (
-                    <li key={j}><a href="#" className="text-slate-400 text-sm hover:text-white transition-colors">{link}</a></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+  { title: "Ürün", links: [
+    { label: "Özellikler", key: null },
+    { label: "Vision AI", key: null },
+    { label: "Toplu Analiz", key: null },
+    { label: "Araçlar", key: null },
+  ]},
+  { title: "Platform", links: [
+    { label: "Trendyol", key: null },
+    { label: "Hepsiburada", key: null },
+    { label: "Amazon TR", key: null },
+    { label: "Shopify", key: null },
+  ]},
+  { title: "Hukuki", links: [
+    { label: "Gizlilik Politikası", key: "gizlilik" },
+    { label: "Kullanım Koşulları", key: "kullanim" },
+    { label: "Çerez Politikası", key: "cerez" },
+    { label: "KVKK", key: "kvkk" },
+  ]},
+  { title: "Diğer", links: [
+    { label: "SSS", key: null },
+    { label: "Mesafeli Satış Sözleşmesi", key: "mesafeli" },
+    { label: "İletişim", key: null },
+    { label: "Blog", key: null },
+  ]},
+].map((col, i) => (
+  <div key={i}>
+    <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
+    <ul className="space-y-2">
+      {col.links.map((link, j) => (
+        <li key={j}>
+          <a href="#" onClick={link.key ? (e) => { e.preventDefault(); setLegalModal(link.key); } : undefined}
+            className="text-slate-400 text-sm hover:text-white transition-colors cursor-pointer">
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+))}
           </div>
 
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
@@ -383,5 +583,6 @@ export default function Landing({ onStart }) {
         </div>
       </footer>
     </div>
+    </>
   );
 }
