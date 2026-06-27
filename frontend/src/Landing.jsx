@@ -574,10 +574,10 @@ destek@icerikbot.com
             </div>
             <div className="flex items-center gap-2 text-slate-500 text-xs">
               <span>Güvenli ödeme altyapısı:</span>
-              <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs">iyzico</span>
-              <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-blue-400 font-bold text-xs">VISA</span>
-              <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-red-400 font-bold text-xs">MC</span>
-              <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs">TROY</span>
+<span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-cyan-400 font-bold text-xs">Shopier</span>
+<span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-blue-400 font-bold text-xs">VISA</span>
+<span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-red-400 font-bold text-xs">MC</span>
+<span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 font-bold text-xs">TROY</span>
             </div>
           </div>
         </div>
