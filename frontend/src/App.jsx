@@ -397,14 +397,23 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
                 </div>
                 <div className="grid md:grid-cols-3 gap-4 max-w-3xl w-full">
                   {[
-                    { id: "baslangic", name: "Başlangıç", price: "149₺", credits: "100 analiz" },
-                    { id: "pro", name: "Pro", price: "349₺", credits: "500 analiz", highlight: true },
-                    { id: "ajans", name: "Ajans", price: "899₺", credits: "Sınırsız" },
+                    { id: "baslangic", name: "Başlangıç", price: "199₺", credits: "100 analiz", features: ["100 analiz/ay", "Toplu analiz", "Vision AI", "Banner aracı"] },
+{ id: "pro", name: "Pro", price: "499₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "Banner aracı", "7/24 destek"] },
+{ id: "ajans", name: "Ajans", price: "1.499₺", credits: "Sınırsız", features: ["Sınırsız analiz", "API erişimi", "Toplu banner", "White label", "Özel destek"] },
                   ].map(p => (
                     <div key={p.id} className={`rounded-2xl p-5 border ${p.highlight ? "border-cyan-500/50 bg-cyan-500/5" : "border-slate-800 bg-slate-900"}`}>
                       {p.highlight && <div className="text-xs font-semibold text-cyan-400 mb-2">⭐ EN POPÜLER</div>}
                       <h3 className="font-bold text-white text-lg mb-1">{p.name}</h3>
                       <p className="text-2xl font-bold text-white mb-1">{p.price}<span className="text-sm text-slate-400 font-normal">/ay</span></p>
+                      {p.features && (
+  <ul className="space-y-1.5 mb-4">
+    {p.features.map((f, i) => (
+      <li key={i} className="text-xs text-slate-400 flex items-center gap-2">
+        <span className="text-cyan-400">✓</span>{f}
+      </li>
+    ))}
+  </ul>
+)}
                       <p className="text-sm text-slate-400 mb-4">{p.credits}</p>
                       <button onClick={() => handlePurchase(p.id)} disabled={paymentLoading === p.id}
                         className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all ${p.highlight ? "bg-cyan-500 hover:bg-cyan-400 text-[#0b121f]" : "border border-slate-700 text-slate-300 hover:border-cyan-500/50"}`}>
