@@ -545,21 +545,21 @@ destek@icerikbot.com
     { label: "KVKK", key: "kvkk" },
   ]},
   { title: "Diğer", links: [
-    { label: "SSS", key: null },
-    { label: "Mesafeli Satış Sözleşmesi", key: "mesafeli" },
-    { label: "İletişim", key: null },
-    { label: "Blog", key: null },
-  ]},
+  { label: "SSS", key: null, href: "#sss" },
+  { label: "Mesafeli Satış Sözleşmesi", key: "mesafeli" },
+  { label: "İletişim", key: null, href: "mailto:destek@icerikbot.com" },
+  { label: "Blog", key: null, href: "#" },
+]},
 ].map((col, i) => (
   <div key={i}>
     <h4 className="text-white font-semibold text-sm mb-4">{col.title}</h4>
     <ul className="space-y-2">
       {col.links.map((link, j) => (
         <li key={j}>
-          <a href="#" onClick={link.key ? (e) => { e.preventDefault(); setLegalModal(link.key); } : undefined}
-            className="text-slate-400 text-sm hover:text-white transition-colors cursor-pointer">
-            {link.label}
-          </a>
+          <a href={link.href || "#"} onClick={link.key ? (e) => { e.preventDefault(); setLegalModal(link.key); } : undefined}
+  className="text-slate-400 text-sm hover:text-white transition-colors cursor-pointer">
+  {link.label}
+</a>
         </li>
       ))}
     </ul>
