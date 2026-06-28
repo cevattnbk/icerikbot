@@ -235,8 +235,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
   return (
     <div className="min-h-screen bg-[#0b121f] text-white font-sans">
       <header className="border-b border-slate-800 bg-[#0b121f]/90 backdrop-blur-md px-4 md:px-6 py-3 flex items-center gap-2 flex-wrap sticky top-0 z-10">
-        {onBack && <button onClick={onBack} className="text-slate-500 hover:text-slate-300 mr-1 transition-colors">←</button>}
-        <div className="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center text-[#0b121f] font-black text-xs">İ</div>
+{onBack && <button onClick={onBack} className="flex items-center gap-1 text-slate-500 hover:text-white text-xs font-medium mr-2 transition-colors">← Geri Dön</button>}        <div className="w-7 h-7 rounded-lg bg-cyan-500 flex items-center justify-center text-[#0b121f] font-black text-xs">İ</div>
         <span className="font-bold text-white">İçerik<span className="text-cyan-400">Bot</span></span>
         <div className="ml-auto flex items-center gap-3">
           {credits !== null && (
