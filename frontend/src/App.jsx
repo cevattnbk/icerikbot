@@ -240,9 +240,10 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
         <span className="font-bold text-white">İçerik<span className="text-cyan-400">Bot</span></span>
         <div className="ml-auto flex items-center gap-3">
           {credits !== null && (
-            <span className={`text-xs font-medium px-3 py-1 rounded-full border ${credits > 0 ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-400" : "border-red-500/30 bg-red-500/10 text-red-400"}`}>
-              {credits > 0 ? `${credits} analiz hakkın var` : "Hakkın doldu"}
-            </span>
+            <button onClick={() => credits <= 0 && setShowPlans(true)}
+  className={`text-xs font-medium px-3 py-1 rounded-full border transition-all ${credits > 0 ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-400" : "border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 cursor-pointer animate-pulse"}`}>
+  {credits > 0 ? `${credits} analiz hakkın var` : "⚡ Hakkın doldu — Plan Al"}
+</button>
           )}
           {onAdmin && (
             <button onClick={onAdmin} className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">Admin</button>
