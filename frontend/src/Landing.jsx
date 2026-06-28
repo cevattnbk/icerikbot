@@ -165,6 +165,26 @@ Bakım, güncelleme veya teknik arızalar nedeniyle hizmet geçici olarak kullan
 destek@icerikbot.com
     `
   },
+  iletisim: {
+  title: "İletişim",
+  content: `
+**Bize Ulaşın**
+
+Her türlü soru, öneri veya destek talebi için aşağıdaki kanallardan bize ulaşabilirsiniz.
+
+**E-posta**
+destek@icerikbot.com
+
+**Yanıt Süresi**
+Mesajlarınıza en geç 24 saat içinde yanıt veriyoruz.
+
+**Çalışma Saatleri**
+Pazartesi - Cuma: 09:00 - 18:00
+
+**Sık Sorulan Sorular**
+Sorunuzun cevabını SSS bölümünde bulabilirsiniz.
+  `
+},
   cerez: {
     title: "Çerez Politikası",
     content: `
@@ -547,7 +567,7 @@ destek@icerikbot.com
   { title: "Diğer", links: [
   { label: "SSS", key: null, href: "#sss" },
   { label: "Mesafeli Satış Sözleşmesi", key: "mesafeli" },
-  { label: "İletişim", key: null, href: "mailto:destek@icerikbot.com" },
+  { label: "İletişim", key: "iletisim" },
   { label: "Blog", key: null, href: "#" },
 ]},
 ].map((col, i) => (
