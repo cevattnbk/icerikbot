@@ -336,6 +336,17 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
               </div>
             )}
 
+
+            <button onClick={imageMode ? handleImageAnalyze : bulkMode ? handleBulkAnalyze : handleAnalyze}
+              disabled={imageMode ? (loading || !imageFile) : bulkMode ? bulkLoading : (loading || !url.trim())}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-sm bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+              {imageMode
+                ? (loading ? <><span className="w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin inline-block" />Görsel analiz ediliyor...</> : <>📷 Görseli Analiz Et</>)
+                : bulkMode
+                ? (bulkLoading ? <><span className="w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin inline-block" />Analiz ediliyor...</> : <>⚡ Toplu Analiz Başlat</>)
+                : (loading ? <><span className="w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin inline-block" />İçerikler hazırlanıyor...</> : <>✨ İçerik Üret</>)
+              }
+            </button>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Yazı Tonu</label>
               <div className="space-y-1">
@@ -348,16 +359,6 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
               </div>
             </div>
 
-            <button onClick={imageMode ? handleImageAnalyze : bulkMode ? handleBulkAnalyze : handleAnalyze}
-              disabled={imageMode ? (loading || !imageFile) : bulkMode ? bulkLoading : (loading || !url.trim())}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-sm bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-              {imageMode
-                ? (loading ? <><span className="w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin inline-block" />Görsel analiz ediliyor...</> : <>📷 Görseli Analiz Et</>)
-                : bulkMode
-                ? (bulkLoading ? <><span className="w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin inline-block" />Analiz ediliyor...</> : <>⚡ Toplu Analiz Başlat</>)
-                : (loading ? <><span className="w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin inline-block" />İçerikler hazırlanıyor...</> : <>✨ İçerik Üret</>)
-              }
-            </button>
 
             {error && (
               <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
