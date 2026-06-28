@@ -44,7 +44,7 @@ useEffect(() => {
     </div>
   );
 
-  if (!started) return <Landing onStart={() => setStarted(true)} />;
+  if (!user && !started) return <Landing onStart={() => setStarted(true)} />;
 if (!user) return <Auth onAuth={setUser} />;
 if (showAdmin) return <Admin user={user} onBack={() => setShowAdmin(false)} />;
 return <App user={user} onBack={() => setStarted(false)} onAdmin={isAdmin ? () => setShowAdmin(true) : null} />;
