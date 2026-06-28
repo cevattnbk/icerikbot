@@ -47,7 +47,7 @@ useEffect(() => {
   if (!user && !started) return <Landing onStart={() => setStarted(true)} />;
 if (!user) return <Auth onAuth={setUser} />;
 if (showAdmin) return <Admin user={user} onBack={() => setShowAdmin(false)} />;
-return <App user={user} onBack={() => setStarted(false)} onAdmin={isAdmin ? () => setShowAdmin(true) : null} />;
+return <App user={user} onBack={async () => { await supabase.auth.signOut(); setUser(null); setStarted(false); }} onAdmin={isAdmin ? () => setShowAdmin(true) : null} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(
