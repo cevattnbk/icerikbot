@@ -6,6 +6,7 @@ import Auth from "./Auth.jsx";
 import { supabase } from "./supabase.js";
 import Admin from "./Admin.jsx";
 import "./index.css";
+import Blog from "./Blog.jsx";
 
 function Root() {
   const [started, setStarted] = useState(false);
@@ -13,6 +14,8 @@ function Root() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 const [showAdmin, setShowAdmin] = useState(false);
+const [showBlog, setShowBlog] = useState(false);
+const [blogPost, setBlogPost] = useState(null);
 
 useEffect(() => {
   if (user) {
@@ -44,7 +47,8 @@ useEffect(() => {
     </div>
   );
 
-  if (!user && !started) return <Landing onStart={() => setStarted(true)} />;
+  if (showBlog) return <Blog post={blogPost} onBack={() => { setShowBlog(false); setBlogPost(null); }} />;
+if (!user && !started) return <Landing onStart={() => setStarted(true)} onBlog={(post) => { setShowBlog(true); setBlogPost(post); }} />;
 if (!user) return <Auth onAuth={setUser} />;
 if (showAdmin) return <Admin user={user} onBack={() => setShowAdmin(false)} />;
 return <App user={user} onBack={async () => { await supabase.auth.signOut(); setUser(null); setStarted(false); }} onAdmin={isAdmin ? () => setShowAdmin(true) : null} />;

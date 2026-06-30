@@ -568,7 +568,7 @@ destek@icerikbot.com
   { label: "SSS", key: null, href: "#sss" },
   { label: "Mesafeli Satış Sözleşmesi", key: "mesafeli" },
   { label: "İletişim", key: "iletisim" },
-  { label: "Blog", key: null, href: "#" },
+  { label: "Blog", key: null, href: "#", onClick: () => onBlog(null) },
 ]},
 ].map((col, i) => (
   <div key={i}>
@@ -576,8 +576,7 @@ destek@icerikbot.com
     <ul className="space-y-2">
       {col.links.map((link, j) => (
         <li key={j}>
-          <a href={link.href || "#"} onClick={link.key ? (e) => { e.preventDefault(); setLegalModal(link.key); } : undefined}
-  className="text-slate-400 text-sm hover:text-white transition-colors cursor-pointer">
+<a href={link.href || "#"} onClick={link.key ? (e) => { e.preventDefault(); setLegalModal(link.key); } : link.onClick ? (e) => { e.preventDefault(); link.onClick(); } : undefined}  className="text-slate-400 text-sm hover:text-white transition-colors cursor-pointer">
   {link.label}
 </a>
         </li>
