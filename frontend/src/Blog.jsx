@@ -1,3 +1,4 @@
+import { useState } from "react";
 const POSTS = [
   {
     id: 1,
