@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function Landing({ onStart }) {
+export default function Landing({ onStart, onBlog }) {
   const [legalModal, setLegalModal] = useState(null);
   const [desiOpen, setDesiOpen] = useState(false);
   const [desi, setDesi] = useState({ en: "", boy: "", yukseklik: "", agirlik: "" });
