@@ -7,6 +7,8 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import multer from "multer";
 import rateLimit from "express-rate-limit";
+import * as XLSX from "xlsx";
+import { parseStringPromise } from "xml2js";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app = express();
@@ -377,6 +379,135 @@ Sadece JSON döndür, başka hiçbir şey yazma, markdown kullanma:
   return JSON.parse(jsonStr);
 }
 
+app.post("/api/analyze-feed", upload.single("feed"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Dosya gerekli" });
+  const { platform = "trendyol", tone = "Profesyonel" } = req.body;
+  
+  try {
+    let products = [];
+    const fileContent = req.file.buffer.toString("utf-8");
+    const ext = req.file.originalname.split(".").pop().toLowerCase();
+
+    if (ext === "xml") {
+      const parsed = await parseStringPromise(fileContent, { explicitArray: false });
+      const items = parsed?.products?.product || parsed?.feed?.entry || parsed?.rss?.channel?.item || [];
+      const itemArray = Array.isArray(items) ? items : [items];
+      products = itemArray.slice(0, 50).map(item => ({
+        name: item.title || item.name || item["g:title"] || "Ürün",
+        description: item.description || item["g:description"] || "",
+        price: item.price || item["g:price"] || "",
+        brand: item.brand || item["g:brand"] || "",
+        category: item.category || item["g:product_type"] || "",
+      }));
+    } else if (ext === "xlsx" || ext === "xls") {
+      const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      products = rows.slice(0, 50).map(row => ({
+        name: row["Ürün Adı"] || row["title"] || row["name"] || Object.values(row)[0] || "Ürün",
+        description: row["Açıklama"] || row["description"] || "",
+        price: row["Fiyat"] || row["price"] || "",
+        brand: row["Marka"] || row["brand"] || "",
+        category: row["Kategori"] || row["category"] || "",
+      }));
+    } else if (ext === "csv") {
+      const rows = fileContent.split("\n");
+      const headers = rows[0].split(",").map(h => h.trim().replace(/"/g, ""));
+      products = rows.slice(1, 51).filter(r => r.trim()).map(row => {
+        const values = row.split(",").map(v => v.trim().replace(/"/g, ""));
+        const obj = {};
+        headers.forEach((h, i) => obj[h] = values[i] || "");
+        return {
+          name: obj["Ürün Adı"] || obj["title"] || obj["name"] || values[0] || "Ürün",
+          description: obj["Açıklama"] || obj["description"] || "",
+          price: obj["Fiyat"] || obj["price"] || "",
+          brand: obj["Marka"] || obj["brand"] || "",
+          category: obj["Kategori"] || obj["category"] || "",
+        };
+      });
+    }
+
+    if (!products.length) return res.status(400).json({ error: "Dosyada ürün bulunamadı" });
+
+    console.log(`📦 ${products.length} ürün işleniyor...`);
+    const results = [];
+
+    for (const product of products) {
+      try {
+        const prompt = `Sen deneyimli bir Türk e-ticaret içerik uzmanısın. Aşağıdaki ürün için ${platform} platformuna uygun içerik üret.
+
+Ürün Adı: ${product.name}
+Marka: ${product.brand || "Belirtilmemiş"}
+Kategori: ${product.category || "Belirtilmemiş"}
+Mevcut Açıklama: ${product.description || "Yok"}
+Fiyat: ${product.price || "Belirtilmemiş"}
+İstenen Ton: ${tone}
+
+Sadece JSON döndür:
+{
+  "title": "SEO uyumlu ürün başlığı (max 100 karakter)",
+  "description": "300-400 kelimelik platform açıklaması",
+  "metaTitle": "SEO title (max 60 karakter)",
+  "metaDescription": "Meta açıklama (max 155 karakter)",
+  "keywords": ["kelime1", "kelime2", "kelime3", "kelime4", "kelime5"],
+  "instagram": "Instagram post metni ve hashtagler"
+}`;
+
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": ANTHROPIC_API_KEY,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 1500,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+
+        const data = await response.json();
+        const raw = data.content?.[0]?.text || "{}";
+        const clean = raw.replace(/^```json\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+        const content = JSON.parse(clean);
+
+        results.push({
+          "Orijinal Ürün Adı": product.name,
+          "SEO Başlık": content.title || "",
+          "Platform Açıklaması": content.description || "",
+          "Meta Title": content.metaTitle || "",
+          "Meta Açıklama": content.metaDescription || "",
+          "Anahtar Kelimeler": (content.keywords || []).join(", "),
+          "Instagram Post": content.instagram || "",
+        });
+      } catch (e) {
+        results.push({
+          "Orijinal Ürün Adı": product.name,
+          "SEO Başlık": "HATA",
+          "Platform Açıklaması": e.message,
+          "Meta Title": "",
+          "Meta Açıklama": "",
+          "Anahtar Kelimeler": "",
+          "Instagram Post": "",
+        });
+      }
+    }
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(results);
+    XLSX.utils.book_append_sheet(wb, ws, "İçerikler");
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="icerikbot_${Date.now()}.xlsx"`);
+    res.send(buffer);
+
+  } catch (err) {
+    console.error("❌ Feed analiz hatası:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/analyze-image", strictLimiter, upload.single("image"), async (req, res) => {
   const { platform = "trendyol", tone = "Profesyonel" } = req.body;
   if (!req.file) return res.status(400).json({ error: "Görsel gerekli" });

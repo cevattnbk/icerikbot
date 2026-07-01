@@ -88,6 +88,9 @@ export default function App({ onBack, user, onAdmin }) {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const inputRef = useRef();
+  const [feedFile, setFeedFile] = useState(null);
+const [feedLoading, setFeedLoading] = useState(false);
+const [feedDone, setFeedDone] = useState(false);
   const [apiKeys, setApiKeys] = useState([]);
 const [apiKeyLoading, setApiKeyLoading] = useState(false);
 const [newKeyName, setNewKeyName] = useState("");
@@ -230,6 +233,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
   { id: "social", label: "Sosyal Medya", icon: "📱" },
   { id: "banner", label: "Banner", icon: "🎨" },
   { id: "api", label: "API", icon: "🔑" },
+  { id: "feed", label: "XML/Excel", icon: "📊" },
 ];
 
   return (
