@@ -6,9 +6,27 @@ import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import multer from "multer";
+import rateLimit from "express-rate-limit";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app = express();
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: { error: "Çok fazla istek gönderdiniz. Lütfen 1 dakika bekleyin." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const strictLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: "Çok fazla analiz isteği. Lütfen 1 dakika bekleyin." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 app.use(cors({
   origin: ["https://icerikbot.vercel.app", "http://localhost:5173"]
 }));
@@ -359,7 +377,7 @@ Sadece JSON döndür, başka hiçbir şey yazma, markdown kullanma:
   return JSON.parse(jsonStr);
 }
 
-app.post("/api/analyze-image", upload.single("image"), async (req, res) => {
+app.post("/api/analyze-image", strictLimiter, upload.single("image"), async (req, res) => {
   const { platform = "trendyol", tone = "Profesyonel" } = req.body;
   if (!req.file) return res.status(400).json({ error: "Görsel gerekli" });
   try {
@@ -384,7 +402,7 @@ app.post("/api/analyze-image", upload.single("image"), async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.post("/api/analyze", async (req, res) => {
+app.post("/api/analyze", strictLimiter, async (req, res) => {
   const { url, platform = "trendyol", tone = "Profesyonel" } = req.body;
   if (!url) return res.status(400).json({ error: "URL gerekli" });
   try {
@@ -400,7 +418,7 @@ app.post("/api/analyze", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.post("/api/analyze-bulk", async (req, res) => {
+app.post("/api/analyze-bulk", strictLimiter, async (req, res) => {
   const { urls, platform = "trendyol", tone = "Profesyonel" } = req.body;
   if (!urls || !urls.length) return res.status(400).json({ error: "URL listesi gerekli" });
 
