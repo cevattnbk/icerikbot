@@ -89,6 +89,10 @@ export default function App({ onBack, user, onAdmin }) {
   const [imagePreview, setImagePreview] = useState(null);
   const inputRef = useRef();
   const [feedFile, setFeedFile] = useState(null);
+  const [karFile, setKarFile] = useState(null);
+const [karLoading, setKarLoading] = useState(false);
+const [karDone, setKarDone] = useState(false);
+const [karSettings, setKarSettings] = useState({ komisyon: "15", kargo: "30", kdv: "20", ekstra: "0" });
 const [feedLoading, setFeedLoading] = useState(false);
 const [feedDone, setFeedDone] = useState(false);
   const [apiKeys, setApiKeys] = useState([]);
@@ -234,6 +238,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
   { id: "banner", label: "Banner", icon: "🎨" },
   { id: "api", label: "API", icon: "🔑" },
   { id: "feed", label: "XML/Excel", icon: "📊" },
+   { id: "karloss", label: "Kar/Zarar", icon: "💰" },
 ];
 
   return (
@@ -858,6 +863,229 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
         <p className="ml-4">"tone": <span className="text-green-400">"Profesyonel"</span></p>
         <p className="ml-2">{"}"}</p>
       </div>
+    </div>
+  </div>
+)}
+{activeTab === "feed" && (
+  <div className="space-y-6 max-w-2xl">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <h3 className="text-white font-semibold mb-1">📊 XML / Excel ile Toplu İçerik Üret</h3>
+      <p className="text-slate-400 text-sm mb-6">Pazaryeri XML feed'inizi veya Excel ürün listenizi yükleyin — her ürün için otomatik içerik üretilsin, Excel olarak indirin.</p>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Dosya Yükle</label>
+          <div onClick={() => document.getElementById("feedInput").click()}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => {
+              e.preventDefault();
+              const file = e.dataTransfer.files[0];
+              if (file) setFeedFile(file);
+            }}
+            className="border-2 border-dashed border-slate-700 rounded-xl p-8 text-center cursor-pointer hover:border-cyan-500/50 transition-all">
+            {feedFile
+              ? <div><p className="text-2xl mb-1">📄</p><p className="text-white font-medium">{feedFile.name}</p><p className="text-slate-400 text-xs mt-1">{(feedFile.size / 1024).toFixed(0)} KB</p></div>
+              : <div><p className="text-3xl mb-2">📊</p><p className="text-slate-400 text-sm">XML, Excel (.xlsx) veya CSV dosyası yükle</p><p className="text-slate-500 text-xs mt-1">Sürükle bırak veya tıkla</p></div>
+            }
+          </div>
+          <input id="feedInput" type="file" accept=".xml,.xlsx,.xls,.csv" className="hidden"
+            onChange={e => { if (e.target.files[0]) setFeedFile(e.target.files[0]); }} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 p-4 rounded-xl bg-slate-800/50 border border-slate-700">
+          <div className="text-xs text-slate-400">
+            <p className="font-semibold text-slate-300 mb-1">✓ Desteklenen formatlar</p>
+            <p>• Trendyol XML feed</p>
+            <p>• N11 ürün XML</p>
+            <p>• Excel (.xlsx, .xls)</p>
+            <p>• CSV dosyası</p>
+          </div>
+          <div className="text-xs text-slate-400">
+            <p className="font-semibold text-slate-300 mb-1">✓ Üretilen içerikler</p>
+            <p>• SEO başlığı</p>
+            <p>• Platform açıklaması</p>
+            <p>• Meta açıklama</p>
+            <p>• Instagram postu</p>
+          </div>
+        </div>
+
+        <button onClick={async () => {
+            if (!feedFile) return;
+            setFeedLoading(true); setFeedDone(false);
+            try {
+              const formData = new FormData();
+              formData.append("feed", feedFile);
+              formData.append("platform", platform);
+              formData.append("tone", tone);
+              const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze-feed", {
+                method: "POST",
+                body: formData,
+              });
+              if (!res.ok) throw new Error(await res.text());
+              const blob = await res.blob();
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `icerikbot_${Date.now()}.xlsx`;
+              a.click();
+              URL.revokeObjectURL(url);
+              setFeedDone(true);
+            } catch (e) {
+              setError(e.message);
+            } finally {
+              setFeedLoading(false);
+            }
+          }}
+          disabled={!feedFile || feedLoading}
+          className="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+          {feedLoading ? <><span className="inline-block w-4 h-4 border-2 border-[#0b121f] border-t-transparent rounded-full animate-spin mr-2" />İçerikler üretiliyor... (bu işlem birkaç dakika sürebilir)</> : "⬇ İçerikleri Üret ve İndir"}
+        </button>
+
+        {feedDone && (
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm text-center">
+            ✓ Excel dosyası indirildi!
+          </div>
+        )}
+
+        <p className="text-xs text-slate-500 text-center">Maksimum 50 ürün • Her ürün için 1 kredi kullanılır</p>
+      </div>
+    </div>
+  </div>
+)}
+{activeTab === "karloss" && (
+  <div className="space-y-6 max-w-2xl">
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <h3 className="text-white font-semibold mb-1">💰 Toplu Kar/Zarar Analizi</h3>
+      <p className="text-slate-400 text-sm mb-6">Excel ürün listenizi yükleyin, her ürün için kar/zarar otomatik hesaplansın, sonucu indirin.</p>
+
+      {/* Varsayılan ayarlar */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Varsayılan Komisyon (%)</label>
+          <input type="number" value={karSettings.komisyon} onChange={e => setKarSettings(s => ({ ...s, komisyon: e.target.value }))}
+            className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Varsayılan Kargo (₺)</label>
+          <input type="number" value={karSettings.kargo} onChange={e => setKarSettings(s => ({ ...s, kargo: e.target.value }))}
+            className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">KDV Oranı (%)</label>
+          <select value={karSettings.kdv} onChange={e => setKarSettings(s => ({ ...s, kdv: e.target.value }))}
+            className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500">
+            <option value="1">%1</option>
+            <option value="10">%10</option>
+            <option value="20">%20</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-slate-500 mb-1.5">Ekstra Masraf (₺)</label>
+          <input type="number" value={karSettings.ekstra} onChange={e => setKarSettings(s => ({ ...s, ekstra: e.target.value }))}
+            className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm focus:outline-none focus:border-cyan-500" />
+        </div>
+      </div>
+
+      {/* Dosya yükleme */}
+      <div className="mb-4">
+        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Excel Dosyası Yükle</label>
+        <div onClick={() => document.getElementById("karInput").click()}
+          onDragOver={e => e.preventDefault()}
+          onDrop={e => { e.preventDefault(); if (e.dataTransfer.files[0]) setKarFile(e.dataTransfer.files[0]); }}
+          className="border-2 border-dashed border-slate-700 rounded-xl p-6 text-center cursor-pointer hover:border-cyan-500/50 transition-all">
+          {karFile
+            ? <div><p className="text-2xl mb-1">📄</p><p className="text-white font-medium">{karFile.name}</p></div>
+            : <div><p className="text-3xl mb-2">💰</p><p className="text-slate-400 text-sm">Excel (.xlsx) veya CSV dosyası yükle</p><p className="text-slate-500 text-xs mt-1">Sürükle bırak veya tıkla</p></div>
+          }
+        </div>
+        <input id="karInput" type="file" accept=".xlsx,.xls,.csv" className="hidden"
+          onChange={e => { if (e.target.files[0]) setKarFile(e.target.files[0]); }} />
+      </div>
+
+      {/* Şablon indirme */}
+      <div className="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 mb-4">
+        <p className="text-xs text-cyan-400 mb-2 font-medium">📋 Excel şablonu nasıl olmalı?</p>
+        <p className="text-xs text-slate-400">Sütunlar: <span className="text-white">Ürün Adı | Alış Fiyatı | Satış Fiyatı | Komisyon (%) | Kargo (₺) | KDV (%)</span></p>
+        <p className="text-xs text-slate-500 mt-1">Komisyon, Kargo ve KDV sütunları boş bırakılırsa yukarıdaki varsayılan değerler kullanılır.</p>
+        <button onClick={() => {
+          const XLSX2 = window.XLSX || null;
+          import("jszip").then(() => import("xlsx").then(X => {
+            const wb = X.utils.book_new();
+            const ws = X.utils.json_to_sheet([
+              { "Ürün Adı": "Örnek Ürün 1", "Alış Fiyatı": 100, "Satış Fiyatı": 200, "Komisyon (%)": 15, "Kargo (₺)": 30, "KDV (%)": 20 },
+              { "Ürün Adı": "Örnek Ürün 2", "Alış Fiyatı": 50, "Satış Fiyatı": 120, "Komisyon (%)": "", "Kargo (₺)": "", "KDV (%)": "" },
+            ]);
+            X.utils.book_append_sheet(wb, ws, "Ürünler");
+            X.writeFile(wb, "icerikbot_sablon.xlsx");
+          }));
+        }} className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all">
+          ⬇ Şablon İndir
+        </button>
+      </div>
+
+      <button onClick={async () => {
+          if (!karFile) return;
+          setKarLoading(true); setKarDone(false);
+          try {
+            const XLSX2 = await import("xlsx");
+            const buffer = await karFile.arrayBuffer();
+            const wb = XLSX2.read(buffer, { type: "array" });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX2.utils.sheet_to_json(sheet);
+
+            const results = rows.map(row => {
+              const alisF = parseFloat(row["Alış Fiyatı"] || row["alis"] || 0);
+              const satisF = parseFloat(row["Satış Fiyatı"] || row["satis"] || 0);
+              const komis = parseFloat(row["Komisyon (%)"] || row["komisyon"] || karSettings.komisyon || 0);
+              const kargo = parseFloat(row["Kargo (₺)"] || row["kargo"] || karSettings.kargo || 0);
+              const kdv = parseFloat(row["KDV (%)"] || row["kdv"] || karSettings.kdv || 0);
+              const ekstra = parseFloat(karSettings.ekstra || 0);
+
+              const komisyonTutari = satisF * (komis / 100);
+              const kdvTutari = satisF * (kdv / 100);
+              const toplamMasraf = alisF + komisyonTutari + kdvTutari + kargo + ekstra;
+              const netKar = satisF - toplamMasraf;
+              const karMarji = satisF > 0 ? ((netKar / satisF) * 100).toFixed(1) : "0";
+
+              return {
+                "Ürün Adı": row["Ürün Adı"] || row["urun"] || "",
+                "Alış Fiyatı (₺)": alisF,
+                "Satış Fiyatı (₺)": satisF,
+                "Komisyon Oranı (%)": komis,
+                "Komisyon Tutarı (₺)": komisyonTutari.toFixed(2),
+                "KDV Tutarı (₺)": kdvTutari.toFixed(2),
+                "Kargo (₺)": kargo,
+                "Ekstra Masraf (₺)": ekstra,
+                "Toplam Masraf (₺)": toplamMasraf.toFixed(2),
+                "Net Kar/Zarar (₺)": netKar.toFixed(2),
+                "Kar Marjı (%)": karMarji,
+                "Durum": netKar >= 0 ? "✅ KÂR" : "❌ ZARAR",
+              };
+            });
+
+            const wbOut = XLSX2.utils.book_new();
+            const wsOut = XLSX2.utils.json_to_sheet(results);
+            XLSX2.utils.book_append_sheet(wbOut, wsOut, "Kar-Zarar Analizi");
+            XLSX2.writeFile(wbOut, `kar_zarar_${Date.now()}.xlsx`);
+            setKarDone(true);
+          } catch (e) {
+            setError(e.message);
+          } finally {
+            setKarLoading(false);
+          }
+        }}
+        disabled={!karFile || karLoading}
+        className="w-full py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-[#0b121f] font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        {karLoading ? "Hesaplanıyor..." : "💰 Kar/Zarar Hesapla ve İndir"}
+      </button>
+
+      {karDone && (
+        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm text-center mt-3">
+          ✓ Excel dosyası indirildi!
+        </div>
+      )}
+
+      <p className="text-xs text-slate-500 text-center mt-3">Kredi kullanılmaz • Tamamen ücretsiz</p>
     </div>
   </div>
 )}
