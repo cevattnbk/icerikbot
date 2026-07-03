@@ -1051,7 +1051,6 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
                 "Ürün Adı": row["Ürün Adı"] || row["urun"] || "",
                 "Alış Fiyatı (₺)": alisF,
                 "Satış Fiyatı (₺)": satisF,
-                "Komisyon Oranı (%)": komis,
                 "Komisyon Tutarı (₺)": komisyonTutari.toFixed(2),
                 "KDV Tutarı (₺)": kdvTutari.toFixed(2),
                 "Kargo (₺)": kargo,
