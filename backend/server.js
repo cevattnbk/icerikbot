@@ -9,6 +9,7 @@ import multer from "multer";
 import rateLimit from "express-rate-limit";
 import * as XLSX from "xlsx";
 import { parseStringPromise } from "xml2js";
+import ExcelJS from "exceljs";
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const app = express();
@@ -379,6 +380,136 @@ Sadece JSON döndür, başka hiçbir şey yazma, markdown kullanma:
   return JSON.parse(jsonStr);
 }
 
+app.post("/api/karloss-excel", upload.single("file"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "Dosya gerekli" });
+  const { komisyon: defKomisyon = "15", kargo: defKargo = "30", kdv: defKdv = "20", ekstra: defEkstra = "0" } = req.body;
+
+  try {
+    const XLSX2 = await import("xlsx");
+    const buffer = req.file.buffer;
+    const wb = XLSX2.read(buffer, { type: "buffer" });
+    const sheet = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX2.utils.sheet_to_json(sheet);
+
+    const results = rows.map(row => {
+      const alisF = parseFloat(row["Alış Fiyatı"] || row["alis"] || 0);
+      const satisF = parseFloat(row["Satış Fiyatı"] || row["satis"] || 0);
+      const komis = parseFloat(row["Komisyon (%)"] || row["komisyon"] || defKomisyon || 0);
+      const kargo = parseFloat(row["Kargo (₺)"] || row["kargo"] || defKargo || 0);
+      const kdv = parseFloat(row["KDV (%)"] || row["kdv"] || defKdv || 0);
+      const ekstra = parseFloat(defEkstra || 0);
+      const komisyonTutari = satisF * (komis / 100);
+      const kdvTutari = satisF * (kdv / 100);
+      const toplamMasraf = alisF + komisyonTutari + kdvTutari + kargo + ekstra;
+      const netKar = satisF - toplamMasraf;
+      const karMarji = satisF > 0 ? ((netKar / satisF) * 100).toFixed(1) : "0";
+      return {
+        urunAdi: row["Ürün Adı"] || row["urun"] || "",
+        alisFiyati: alisF,
+        satisFiyati: satisF,
+        komisyonTutari: parseFloat(komisyonTutari.toFixed(2)),
+        kdvTutari: parseFloat(kdvTutari.toFixed(2)),
+        kargo,
+        ekstra,
+        toplamMasraf: parseFloat(toplamMasraf.toFixed(2)),
+        netKar: parseFloat(netKar.toFixed(2)),
+        karMarji: parseFloat(karMarji),
+        durum: netKar >= 0 ? "KÂR" : "ZARAR",
+      };
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Kar-Zarar Analizi");
+
+    // Başlıklar
+    worksheet.columns = [
+      { header: "Ürün Adı", key: "urunAdi", width: 30 },
+      { header: "Alış Fiyatı (₺)", key: "alisFiyati", width: 16 },
+      { header: "Satış Fiyatı (₺)", key: "satisFiyati", width: 16 },
+      { header: "Komisyon Tutarı (₺)", key: "komisyonTutari", width: 20 },
+      { header: "KDV Tutarı (₺)", key: "kdvTutari", width: 16 },
+      { header: "Kargo (₺)", key: "kargo", width: 12 },
+      { header: "Ekstra Masraf (₺)", key: "ekstra", width: 18 },
+      { header: "Toplam Masraf (₺)", key: "toplamMasraf", width: 18 },
+      { header: "Net Kar/Zarar (₺)", key: "netKar", width: 18 },
+      { header: "Kar Marjı (%)", key: "karMarji", width: 14 },
+      { header: "Durum", key: "durum", width: 12 },
+    ];
+
+    // Başlık satırı stilini ayarla
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0F172A" } };
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 11 };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FF334155" } },
+        bottom: { style: "thin", color: { argb: "FF334155" } },
+        left: { style: "thin", color: { argb: "FF334155" } },
+        right: { style: "thin", color: { argb: "FF334155" } },
+      };
+    });
+    headerRow.height = 30;
+
+    // Verileri ekle
+    results.forEach((result, idx) => {
+      const row = worksheet.addRow(result);
+      row.height = 22;
+
+      // Zebra renklendirme
+      const bgColor = idx % 2 === 0 ? "FFF8FAFC" : "FFFFFFFF";
+      row.eachCell(cell => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
+        cell.alignment = { vertical: "middle" };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFE2E8F0" } },
+          bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+          left: { style: "thin", color: { argb: "FFE2E8F0" } },
+          right: { style: "thin", color: { argb: "FFE2E8F0" } },
+        };
+      });
+
+      // Durum hücresi renklendirme
+      const durumCell = row.getCell("durum");
+      if (result.durum === "KÂR") {
+        durumCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD1FAE5" } };
+        durumCell.font = { bold: true, color: { argb: "FF065F46" } };
+      } else {
+        durumCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFEE2E2" } };
+        durumCell.font = { bold: true, color: { argb: "FF991B1B" } };
+      }
+      durumCell.alignment = { horizontal: "center", vertical: "middle" };
+
+      // Net kar hücresi renklendirme
+      const netKarCell = row.getCell("netKar");
+      if (result.netKar >= 0) {
+        netKarCell.font = { bold: true, color: { argb: "FF065F46" } };
+      } else {
+        netKarCell.font = { bold: true, color: { argb: "FF991B1B" } };
+      }
+    });
+
+    // Grafik ekle
+    const chart = workbook.addChart("bar", "clustered");
+    chart.title = { name: "Ürün Bazlı Net Kâr / Zarar Dağılımı" };
+    chart.addSerie({
+      name: "Net Kar/Zarar (₺)",
+      xValues: `'Kar-Zarar Analizi'!$A$2:$A$${results.length + 1}`,
+      yValues: `'Kar-Zarar Analizi'!$I$2:$I$${results.length + 1}`,
+    });
+    chart.setView(0, 0, 14, 20);
+    worksheet.addChart(chart, "M1");
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="kar_zarar_${Date.now()}.xlsx"`);
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error("❌ Kar/zarar Excel hatası:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/analyze-feed", upload.single("feed"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Dosya gerekli" });
   const { platform = "trendyol", tone = "Profesyonel" } = req.body;
