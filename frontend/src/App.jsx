@@ -1011,12 +1011,16 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
           const XLSX2 = window.XLSX || null;
           import("jszip").then(() => import("xlsx").then(X => {
             const wb = X.utils.book_new();
-            const ws = X.utils.json_to_sheet([
-              { "Ürün Adı": "Örnek Ürün 1", "Alış Fiyatı": 100, "Satış Fiyatı": 200, "Komisyon (%)": 15, "Kargo (₺)": 30, "KDV (%)": 20 },
-              { "Ürün Adı": "Örnek Ürün 2", "Alış Fiyatı": 50, "Satış Fiyatı": 120, "Komisyon (%)": "", "Kargo (₺)": "", "KDV (%)": "" },
-            ]);
-            X.utils.book_append_sheet(wb, ws, "Ürünler");
-            X.writeFile(wb, "icerikbot_sablon.xlsx");
+const wsData = [
+  ["Ürün Adı", "Alış Fiyatı", "Satış Fiyatı", "Komisyon (%)", "Kargo (₺)", "KDV (%)"],
+  ["Örnek Ürün 1", 100, 200, 15, 30, 20],
+  ["Örnek Ürün 2", 50, 120, "", "", ""],
+  ["Örnek Ürün 3", 350, 560, 12, 25, 10],
+];
+const ws = X.utils.aoa_to_sheet(wsData);
+ws["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 10 }];
+X.utils.book_append_sheet(wb, ws, "Ürünler");
+X.writeFile(wb, "icerikbot_sablon.xlsx");
           }));
         }} className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all">
           ⬇ Şablon İndir
@@ -1027,45 +1031,24 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
           if (!karFile) return;
           setKarLoading(true); setKarDone(false);
           try {
-            const XLSX2 = await import("xlsx");
-            const buffer = await karFile.arrayBuffer();
-            const wb = XLSX2.read(buffer, { type: "array" });
-            const sheet = wb.Sheets[wb.SheetNames[0]];
-            const rows = XLSX2.utils.sheet_to_json(sheet);
-
-            const results = rows.map(row => {
-              const alisF = parseFloat(row["Alış Fiyatı"] || row["alis"] || 0);
-              const satisF = parseFloat(row["Satış Fiyatı"] || row["satis"] || 0);
-              const komis = parseFloat(row["Komisyon (%)"] || row["komisyon"] || karSettings.komisyon || 0);
-              const kargo = parseFloat(row["Kargo (₺)"] || row["kargo"] || karSettings.kargo || 0);
-              const kdv = parseFloat(row["KDV (%)"] || row["kdv"] || karSettings.kdv || 0);
-              const ekstra = parseFloat(karSettings.ekstra || 0);
-
-              const komisyonTutari = satisF * (komis / 100);
-              const kdvTutari = satisF * (kdv / 100);
-              const toplamMasraf = alisF + komisyonTutari + kdvTutari + kargo + ekstra;
-              const netKar = satisF - toplamMasraf;
-              const karMarji = satisF > 0 ? ((netKar / satisF) * 100).toFixed(1) : "0";
-
-              return {
-                "Ürün Adı": row["Ürün Adı"] || row["urun"] || "",
-                "Alış Fiyatı (₺)": alisF,
-                "Satış Fiyatı (₺)": satisF,
-                "Komisyon Tutarı (₺)": komisyonTutari.toFixed(2),
-                "KDV Tutarı (₺)": kdvTutari.toFixed(2),
-                "Kargo (₺)": kargo,
-                "Ekstra Masraf (₺)": ekstra,
-                "Toplam Masraf (₺)": toplamMasraf.toFixed(2),
-                "Net Kar/Zarar (₺)": netKar.toFixed(2),
-                "Kar Marjı (%)": karMarji,
-                "Durum": netKar >= 0 ? "✅ KÂR" : "❌ ZARAR",
-              };
+            const formData = new FormData();
+            formData.append("file", karFile);
+            formData.append("komisyon", karSettings.komisyon);
+            formData.append("kargo", karSettings.kargo);
+            formData.append("kdv", karSettings.kdv);
+            formData.append("ekstra", karSettings.ekstra);
+            const res = await fetch("https://icerikbot-production.up.railway.app/api/karloss-excel", {
+              method: "POST",
+              body: formData,
             });
-
-            const wbOut = XLSX2.utils.book_new();
-            const wsOut = XLSX2.utils.json_to_sheet(results);
-            XLSX2.utils.book_append_sheet(wbOut, wsOut, "Kar-Zarar Analizi");
-            XLSX2.writeFile(wbOut, `kar_zarar_${Date.now()}.xlsx`);
+            if (!res.ok) throw new Error(await res.text());
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `kar_zarar_${Date.now()}.xlsx`;
+            a.click();
+            URL.revokeObjectURL(url);
             setKarDone(true);
           } catch (e) {
             setError(e.message);
