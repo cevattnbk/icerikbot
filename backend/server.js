@@ -30,6 +30,7 @@ const strictLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+app.set("trust proxy", 1);
 app.use(limiter);
 app.use(cors({
   origin: ["https://icerikbot.vercel.app", "http://localhost:5173"]
