@@ -864,5 +864,6 @@ app.get("/api/health", (_, res) => res.json({ status: "ok" }));
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 İçerikBot Backend → http://localhost:${PORT}`);
+  console.log("✅ karloss-excel endpoint aktif");
   console.log(`📋 Anthropic Key: ${ANTHROPIC_API_KEY ? "✓ Hazır" : "✗ EKSİK!"}`);
 });
