@@ -1007,21 +1007,15 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
         <p className="text-xs text-cyan-400 mb-2 font-medium">📋 Excel şablonu nasıl olmalı?</p>
         <p className="text-xs text-slate-400">Sütunlar: <span className="text-white">Ürün Adı | Alış Fiyatı | Satış Fiyatı | Komisyon (%) | Kargo (₺) | KDV (%)</span></p>
         <p className="text-xs text-slate-500 mt-1">Komisyon, Kargo ve KDV sütunları boş bırakılırsa yukarıdaki varsayılan değerler kullanılır.</p>
-        <button onClick={() => {
-          const XLSX2 = window.XLSX || null;
-          import("jszip").then(() => import("xlsx").then(X => {
-            const wb = X.utils.book_new();
-const wsData = [
-  ["Ürün Adı", "Alış Fiyatı", "Satış Fiyatı", "Komisyon (%)", "Kargo (₺)", "KDV (%)"],
-  ["Örnek Ürün 1", 100, 200, 15, 30, 20],
-  ["Örnek Ürün 2", 50, 120, "", "", ""],
-  ["Örnek Ürün 3", 350, 560, 12, 25, 10],
-];
-const ws = X.utils.aoa_to_sheet(wsData);
-ws["!cols"] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }, { wch: 10 }];
-X.utils.book_append_sheet(wb, ws, "Ürünler");
-X.writeFile(wb, "icerikbot_sablon.xlsx");
-          }));
+        <button onClick={async () => {
+          const res = await fetch("https://icerikbot-production.up.railway.app/api/kar-sablon");
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "icerikbot_sablon.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
         }} className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all">
           ⬇ Şablon İndir
         </button>

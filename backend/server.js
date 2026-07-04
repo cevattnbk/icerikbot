@@ -382,6 +382,65 @@ Sadece JSON döndür, başka hiçbir şey yazma, markdown kullanma:
   return JSON.parse(jsonStr);
 }
 
+app.get("/api/kar-sablon", async (req, res) => {
+  try {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Ürünler");
+
+    worksheet.columns = [
+      { header: "Ürün Adı", key: "urun", width: 30 },
+      { header: "Alış Fiyatı", key: "alis", width: 15 },
+      { header: "Satış Fiyatı", key: "satis", width: 15 },
+      { header: "Komisyon (%)", key: "komisyon", width: 15 },
+      { header: "Kargo (₺)", key: "kargo", width: 12 },
+      { header: "KDV (%)", key: "kdv", width: 10 },
+    ];
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0F172A" } };
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 11 };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FF334155" } },
+        bottom: { style: "thin", color: { argb: "FF334155" } },
+        left: { style: "thin", color: { argb: "FF334155" } },
+        right: { style: "thin", color: { argb: "FF334155" } },
+      };
+    });
+    headerRow.height = 30;
+
+    const samples = [
+      { urun: "Örnek Ürün 1", alis: 100, satis: 200, komisyon: 15, kargo: 30, kdv: 20 },
+      { urun: "Örnek Ürün 2", alis: 50, satis: 120, komisyon: "", kargo: "", kdv: "" },
+      { urun: "Örnek Ürün 3", alis: 350, satis: 560, komisyon: 12, kargo: 25, kdv: 10 },
+    ];
+
+    samples.forEach((s, idx) => {
+      const row = worksheet.addRow(s);
+      row.height = 22;
+      const bgColor = idx % 2 === 0 ? "FFF8FAFC" : "FFFFFFFF";
+      row.eachCell(cell => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
+        cell.alignment = { vertical: "middle", horizontal: "center" };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFE2E8F0" } },
+          bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+          left: { style: "thin", color: { argb: "FFE2E8F0" } },
+          right: { style: "thin", color: { argb: "FFE2E8F0" } },
+        };
+      });
+    });
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", 'attachment; filename="icerikbot_sablon.xlsx"');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("❌ Şablon hatası:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/karloss-excel", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Dosya gerekli" });
   const { komisyon: defKomisyon = "15", kargo: defKargo = "30", kdv: defKdv = "20", ekstra: defEkstra = "0" } = req.body;
