@@ -550,16 +550,6 @@ app.post("/api/karloss-excel", upload.single("file"), async (req, res) => {
       }
     });
 
-    // Grafik ekle
-    const chart = workbook.addChart("bar", "clustered");
-    chart.title = { name: "Ürün Bazlı Net Kâr / Zarar Dağılımı" };
-    chart.addSerie({
-      name: "Net Kar/Zarar (₺)",
-      xValues: `'Kar-Zarar Analizi'!$A$2:$A$${results.length + 1}`,
-      yValues: `'Kar-Zarar Analizi'!$I$2:$I$${results.length + 1}`,
-    });
-    chart.setView(0, 0, 14, 20);
-    worksheet.addChart(chart, "M1");
 
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", `attachment; filename="kar_zarar_${Date.now()}.xlsx"`);
