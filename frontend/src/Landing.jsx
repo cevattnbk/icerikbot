@@ -343,6 +343,9 @@ destek@icerikbot.com
             { icon: "🔍", title: "SEO Optimizasyonu", desc: "SEO başlığı, meta açıklama, anahtar kelimeler ve long-tail kelimeler.", color: "green" },
             { icon: "📱", title: "Sosyal Medya", desc: "Instagram, Twitter/X, Facebook ve LinkedIn için hazır postlar.", color: "cyan" },
             { icon: "📷", title: "Vision AI", desc: "Ürün fotoğrafını yükle, yapay zeka içeriği otomatik üretsin.", color: "green" },
+            { icon: "🎨", title: "Banner Tasarımı", desc: "4 farklı şablonla Instagram, Story ve Trendyol banneri oluştur, PNG indir.", color: "cyan" },
+            { icon: "📊", title: "XML/Excel Toplu İçerik", desc: "Pazaryeri XML feed'i veya Excel listeni yükle, tüm ürünler için içerik üret.", color: "green" },
+            { icon: "💰", title: "Kar/Zarar Analizi", desc: "Ürün listenizi yükle, komisyon ve masrafları gir, net kar/zarar Excel'e aktar.", color: "cyan" },
           ].map((f, i) => (
             <div key={i} className={`rounded-2xl border border-slate-800 bg-slate-900/50 p-5 hover:border-${f.color}-500/30 transition-all`}>
               <span className="text-2xl mb-3 block">{f.icon}</span>
