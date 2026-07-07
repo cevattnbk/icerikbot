@@ -389,7 +389,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
         <main className="flex-1 overflow-y-auto bg-[#0d1521]">
           <div className="sticky top-0 z-10 bg-[#0d1521] border-b border-slate-800 px-6 pt-4 pb-0 flex gap-1">
             {tabs.map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              <button key={tab.id} onClick={() => { setActiveTab(tab.id); document.querySelector("main")?.scrollTo({ top: 0, behavior: "smooth" }); }}
                 className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border transition-all ${activeTab === tab.id ? "bg-slate-900 border-slate-700 border-b-[#0d1521] text-white -mb-px" : "border-transparent text-slate-500 hover:text-slate-300"}`}>
                 {tab.icon} {tab.label}
               </button>
