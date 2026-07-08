@@ -216,6 +216,9 @@ Bu iade politikası, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Me
 
 Her türlü soru, öneri veya destek talebi için aşağıdaki kanallardan bize ulaşabilirsiniz.
 
+**Telegram**
+t.me/icerikbott
+
 **E-posta**
 destek@icerikbot.com
 
@@ -264,12 +267,14 @@ destek@icerikbot.com
       </div>
       <div className="px-6 py-6">
         {legalContent[legalModal]?.content.split("\n").map((line, i) => (
-          line.startsWith("**") && line.endsWith("**")
-            ? <p key={i} className="font-bold text-white mt-4 mb-1">{line.replace(/\*\*/g, "")}</p>
-            : line.trim() === ""
-            ? <br key={i} />
-            : <p key={i} className="text-slate-400 text-sm leading-relaxed">{line}</p>
-        ))}
+  line.startsWith("**") && line.endsWith("**")
+    ? <p key={i} className="font-bold text-white mt-4 mb-1">{line.replace(/\*\*/g, "")}</p>
+    : line.trim() === ""
+    ? <br key={i} />
+    : line.includes("t.me/")
+    ? <a key={i} href={`https://${line.trim()}`} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 text-sm">{line.trim()}</a>
+    : <p key={i} className="text-slate-400 text-sm leading-relaxed">{line}</p>
+))}
       </div>
     </div>
   </div>
