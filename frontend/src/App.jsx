@@ -406,9 +406,9 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
                 </div>
                 <div className="grid md:grid-cols-3 gap-4 max-w-3xl w-full">
                   {[
-                    { id: "baslangic", name: "Başlangıç", price: "199₺", credits: "100 analiz", features: ["100 analiz/ay", "Toplu analiz", "Vision AI", "Banner aracı"] },
-{ id: "pro", name: "Pro", price: "499₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "Banner aracı", "7/24 destek"] },
-{ id: "ajans", name: "Ajans", price: "1.499₺", credits: "Sınırsız", features: ["Sınırsız analiz", "API erişimi", "Toplu banner", "White label", "Özel destek"] },
+                    { id: "baslangic", name: "Başlangıç", price: "199₺", credits: "100 analiz", features: ["100 analiz/ay", "Toplu analiz", "Vision AI", "Banner aracı", "Kar/Zarar analizi"] },
+{ id: "pro", name: "Pro", price: "499₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "Banner aracı", "XML/Excel toplu içerik", "Kar/Zarar analizi", "7/24 destek"] },
+{ id: "ajans", name: "Ajans", price: "1.499₺", credits: "Sınırsız", features: ["Sınırsız analiz", "API erişimi", "Toplu banner", "XML/Excel toplu içerik", "Kar/Zarar analizi", "White label", "Özel destek"] },
                   ].map(p => (
                     <div key={p.id} className={`rounded-2xl p-5 border ${p.highlight ? "border-cyan-500/50 bg-cyan-500/5" : "border-slate-800 bg-slate-900"}`}>
                       {p.highlight && <div className="text-xs font-semibold text-cyan-400 mb-2">⭐ EN POPÜLER</div>}
