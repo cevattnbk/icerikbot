@@ -165,6 +165,50 @@ Bakım, güncelleme veya teknik arızalar nedeniyle hizmet geçici olarak kullan
 destek@icerikbot.com
     `
   },
+  iade: {
+  title: "İade Politikası",
+  content: `
+**Son güncelleme:** Temmuz 2026
+
+**1. Genel Hükümler**
+İçerikBot üzerinden sunulan hizmetler, dijital yazılım hizmeti ve analiz kredisi niteliğinde olup satın alma anında kullanıcı hesabına anında tanımlanmaktadır. Kullanıcı, satın alma işlemini tamamlayarak bu iade politikası şartlarını okuduğunu, anladığını ve kabul ettiğini beyan eder.
+
+**2. Dijital Hizmetlerde İade Koşulları**
+Satın alınan ürünler dijital hizmet niteliğinde olduğundan aşağıdaki şartlar geçerlidir:
+
+Kredi paketi, satın alma sonrası kullanıcı hesabına anında tanımlanır.
+Kullanıcı, dijital hizmete erişim sağlanmasıyla birlikte cayma hakkının sona erdiğini kabul eder.
+Bu nedenle dijital hizmetlerde, erişim sağlandıktan sonra iade yapılmamaktadır.
+
+**3. Cayma Hakkına İlişkin Bilgilendirme**
+Mesafeli Sözleşmeler Yönetmeliği'nin 15. maddesi uyarınca; "Elektronik ortamda anında ifa edilen hizmetler ve tüketiciye anında teslim edilen gayrimaddi mallara ilişkin sözleşmelerde cayma hakkı kullanılamaz."
+
+Kullanıcı, satın alma işlemi öncesinde bu duruma ilişkin bilgilendirildiğini ve dijital içeriğin anında sunulmasını kabul ettiğini beyan eder.
+
+**4. Teknik Destek ve Alternatif Çözüm Süreci**
+Aşağıdaki durumlarda öncelikli olarak teknik destek süreci işletilir:
+
+- Kredilerin hesaba tanımlanmaması
+- Sistem kaynaklı ödeme veya erişim sorunları
+- Yanlış plan tanımlandığının düşünülmesi
+
+Bu tür durumlarda destek ekibi bildirilen sorunu inceleyerek şu çözümleri sunabilir:
+- Kredilerin yeniden tanımlanması
+- Ödeme kaydının kontrol edilmesi
+- Doğru planın kullanıcıya tanımlanması
+
+**5. Kullanıcı Yükümlülüğü**
+Kullanıcı, satın aldığı hizmeti yalnızca kişisel veya ticari kendi işleri için kullanacağını; üçüncü kişilere API key'ini paylaşmayacağını ve hizmeti kötüye kullanmayacağını kabul eder. Aksi durumlarda doğabilecek hukuki sorumluluk kullanıcıya aittir.
+
+**6. Destek ve İletişim**
+Teknik sorunlar ve iade talepleri için:
+E-posta: destek@icerikbot.com
+Başvurular en geç 3 iş günü içinde değerlendirilir.
+
+**7. Yasal Dayanak**
+Bu iade politikası, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği kapsamında hazırlanmıştır. Dijital içeriklerde, tüketicinin açık onayı ile anında ifa edilen hizmetlerde cayma hakkı bulunmamaktadır.
+  `
+},
   iletisim: {
   title: "İletişim",
   content: `
@@ -563,6 +607,7 @@ destek@icerikbot.com
   ]},
   { title: "Hukuki", links: [
     { label: "Gizlilik Politikası", key: "gizlilik" },
+    { label: "İade Politikası", key: "iade" },
     { label: "Kullanım Koşulları", key: "kullanim" },
     { label: "Çerez Politikası", key: "cerez" },
     { label: "KVKK", key: "kvkk" },
