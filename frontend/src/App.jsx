@@ -434,7 +434,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
               </div>
             )}
 
-            {!loading && !result && !error && !showPlans && bulkResults.length === 0 && (
+            {!loading && !result && !error && !showPlans && bulkResults.length === 0 && !["banner","api","feed","karloss"].includes(activeTab) && (
               <div className="flex flex-col items-center justify-center h-96 text-center space-y-4">
                 <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-2xl">✨</div>
                 <div>
