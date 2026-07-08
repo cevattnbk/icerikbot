@@ -741,7 +741,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
     </div>
   </div>
   )}
-  {/* Toplu Banner */}
+  {activeTab === "banner" && (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 mt-4">
       <h3 className="text-white font-semibold mb-4">📦 Toplu Banner Üret</h3>
       <p className="text-slate-400 text-sm mb-4">Birden fazla ürün için aynı şablonla banner üret, ZIP olarak indir.</p>
@@ -793,6 +793,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
         </button>
       </div>
     </div>
+    )}
 {activeTab === "api" && (
   <div className="space-y-6 max-w-2xl">
     <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
