@@ -532,9 +532,9 @@ destek@icerikbot.com
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { name: "Ücretsiz", price: "0₺", period: "/ay", features: ["3 analiz/ay", "Tekli analiz", "Tüm platformlar", "Vision AI"], cta: "Hemen Başla", highlight: false },
-{ id: "baslangic", name: "Başlangıç", price: "199₺", credits: "100 analiz", features: ["100 analiz/ay", "Toplu analiz", "Vision AI", "Banner aracı", "Kar/Zarar analizi"], cta: "Hemen Başla", },
-{ id: "pro", name: "Pro", price: "499₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "Sınırsız toplu analiz", "API erişimi", "Banner aracı", "XML/Excel toplu içerik", "Kar/Zarar analizi", "7/24 destek"], cta: "Hemen Başla", },
-{ id: "ajans", name: "Ajans", price: "1.499₺", credits: "Sınırsız", features: ["Sınırsız analiz", "API erişimi", "Toplu banner", "XML/Excel toplu içerik", "Kar/Zarar analizi", "White label", "Özel destek"], cta: "Hemen Başla", },
+{ id: "baslangic", name: "Başlangıç", price: "349₺", credits: "100 analiz", features: ["100 analiz/ay", "30 görsel (Vision) analiz", "Toplu analiz", "Banner aracı", "Kar/Zarar analizi"], cta: "Hemen Başla", },
+{ id: "pro", name: "Pro", price: "699₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "100 görsel (Vision) analiz", "Sınırsız toplu analiz", "API erişimi", "Banner aracı", "XML/Excel toplu içerik", "Kar/Zarar analizi", "7/24 destek"], cta: "Hemen Başla", },
+{ id: "ajans", name: "Ajans", price: "1.499₺", credits: "1000 analiz", features: ["1000 analiz/ay", "300 görsel (Vision) analiz", "API erişimi", "Toplu banner", "XML/Excel toplu içerik", "Kar/Zarar analizi", "White label", "Özel destek"], cta: "Hemen Başla", },
           ].map((plan, i) => (
             <div key={i} className={`rounded-2xl p-6 border transition-all ${plan.highlight ? "border-cyan-500/50 bg-cyan-500/5 shadow-[0_0_25px_rgba(6,182,212,0.1)]" : "border-slate-800 bg-slate-900/50"}`}>
               {plan.highlight && <div className="text-xs font-semibold text-cyan-400 mb-3">⭐ EN POPÜLER</div>}
