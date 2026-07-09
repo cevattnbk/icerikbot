@@ -63,6 +63,70 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 const resend = new Resend(process.env.RESEND_API_KEY);
+// ============ PLAN & KREDİ SİSTEMİ ============
+const PLAN_LIMITS = {
+  free:      { credits: 3,    vision: 3,   features: ["banner", "karloss"] },
+  baslangic: { credits: 100,  vision: 30,  features: ["banner", "karloss", "bulk"] },
+  pro:       { credits: 500,  vision: 100, features: ["banner", "karloss", "bulk", "feed", "api"] },
+  ajans:     { credits: 1000, vision: 300, features: ["banner", "karloss", "bulk", "feed", "api"] },
+};
+
+// Kullanıcının kredisini kontrol eder ve düşürür. Yeterli kredi yoksa hata fırlatır.
+async function checkAndUseCredit(userId, type = "text") {
+  if (!userId) {
+    const e = new Error("Giriş yapmalısınız."); e.status = 401; throw e;
+  }
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("credits, vision_credits, plan")
+    .eq("id", userId)
+    .single();
+  if (error || !profile) {
+    const e = new Error("Kullanıcı bulunamadı."); e.status = 404; throw e;
+  }
+
+  const column = type === "vision" ? "vision_credits" : "credits";
+  const current = profile[column] ?? 0;
+
+  if (current <= 0) {
+    const e = new Error(type === "vision"
+      ? "Görsel analiz hakkınız bitti. Planınızı yükseltin."
+      : "Analiz hakkınız bitti. Planınızı yükseltin.");
+    e.status = 403;
+    throw e;
+  }
+
+  const { error: updErr } = await supabase
+    .from("profiles")
+    .update({ [column]: current - 1 })
+    .eq("id", userId);
+  if (updErr) {
+    const e = new Error("Kredi güncellenemedi."); e.status = 500; throw e;
+  }
+
+  return { remaining: current - 1, plan: profile.plan || "free" };
+}
+
+// Kullanıcının planı belirtilen özelliğe erişebiliyor mu?
+async function checkFeatureAccess(userId, feature) {
+  if (!userId) {
+    const e = new Error("Giriş yapmalısınız."); e.status = 401; throw e;
+  }
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan")
+    .eq("id", userId)
+    .single();
+  const plan = profile?.plan || "free";
+  const allowed = PLAN_LIMITS[plan]?.features || PLAN_LIMITS.free.features;
+  if (!allowed.includes(feature)) {
+    const e = new Error("Bu özellik planınızda bulunmuyor. Lütfen planınızı yükseltin.");
+    e.status = 403;
+    throw e;
+  }
+  return plan;
+}
+// ============================================
 
 async function sendEmail(to, subject, html) {
   try {
@@ -563,9 +627,13 @@ app.post("/api/karloss-excel", upload.single("file"), async (req, res) => {
 });
 app.post("/api/analyze-feed", upload.single("feed"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Dosya gerekli" });
-  const { platform = "trendyol", tone = "Profesyonel" } = req.body;
-  
+  const { platform = "trendyol", tone = "Profesyonel", userId } = req.body;
+
   try {
+    const effectiveUserId = req.apiUserId || userId;
+    // XML/Excel özelliği sadece pro/ajans planlarında
+    await checkFeatureAccess(effectiveUserId, "feed");
+
     let products = [];
     const fileContent = req.file.buffer.toString("utf-8");
     const ext = req.file.originalname.split(".").pop().toLowerCase();
@@ -616,6 +684,18 @@ app.post("/api/analyze-feed", upload.single("feed"), async (req, res) => {
 
     for (const product of products) {
       try {
+        // Her ürün için 1 kredi düşür; biterse döngüyü durdur
+        try {
+          await checkAndUseCredit(effectiveUserId, "text");
+        } catch (creditErr) {
+          results.push({
+            "Orijinal Ürün Adı": product.name,
+            "SEO Başlık": "KREDİ BİTTİ",
+            "Platform Açıklaması": "Kredi yetersiz - bu ürün işlenmedi",
+            "Meta Title": "", "Meta Açıklama": "", "Anahtar Kelimeler": "", "Instagram Post": "",
+          });
+          continue;
+        }
         const prompt = `Sen deneyimli bir Türk e-ticaret içerik uzmanısın. Aşağıdaki ürün için ${platform} platformuna uygun içerik üret.
 
 Ürün Adı: ${product.name}
@@ -691,14 +771,17 @@ Sadece JSON döndür:
   }
 });
 app.post("/api/analyze-image", strictLimiter, upload.single("image"), async (req, res) => {
-  const { platform = "trendyol", tone = "Profesyonel" } = req.body;
+  const { platform = "trendyol", tone = "Profesyonel", userId } = req.body;
   if (!req.file) return res.status(400).json({ error: "Görsel gerekli" });
   try {
+    const effectiveUserId = req.apiUserId || userId;
+    const { remaining } = await checkAndUseCredit(effectiveUserId, "vision");
+
     const base64Image = req.file.buffer.toString("base64");
     const mediaType = req.file.mimetype;
     console.log(`📷 Görsel analiz ediliyor: ${req.file.originalname}`);
     const aiContent = await analyzeImage(base64Image, mediaType, platform, tone);
-    console.log(`✅ Görsel içeriği üretildi`);
+    console.log(`✅ Görsel içeriği üretildi (kalan vision: ${remaining})`);
     res.json({
       product: {
         name: aiContent.detectedProduct?.name || "Tespit edilemedi",
@@ -709,47 +792,68 @@ app.post("/api/analyze-image", strictLimiter, upload.single("image"), async (req
       description: aiContent.description,
       seo: aiContent.seo,
       social: aiContent.social,
+      remainingVisionCredits: remaining,
     });
   } catch (err) {
     console.error("❌ Görsel analiz hatası:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({ error: err.message });
   }
 });
 app.post("/api/analyze", strictLimiter, async (req, res) => {
-  const { url, platform = "trendyol", tone = "Profesyonel" } = req.body;
+  const { url, platform = "trendyol", tone = "Profesyonel", userId } = req.body;
   if (!url) return res.status(400).json({ error: "URL gerekli" });
   try {
+    // API key ile geldiyse userId'yi oradan al, yoksa body'den
+    const effectiveUserId = req.apiUserId || userId;
+    const { remaining } = await checkAndUseCredit(effectiveUserId, "text");
+
     console.log(`🔍 Scraping: ${url}`);
     const product = await scrapeProduct(url);
     console.log(`✅ Ürün çekildi: ${product.name}`);
     console.log(`🤖 AI içerik üretiliyor...`);
     const aiContent = await generateContent(product, platform, tone);
-    console.log(`✅ İçerik üretildi`);
-    res.json({ product, ...aiContent });
+    console.log(`✅ İçerik üretildi (kalan kredi: ${remaining})`);
+    res.json({ product, ...aiContent, remainingCredits: remaining });
   } catch (err) {
     console.error("❌ Hata:", err.message);
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({ error: err.message });
   }
 });
 app.post("/api/analyze-bulk", strictLimiter, async (req, res) => {
-  const { urls, platform = "trendyol", tone = "Profesyonel" } = req.body;
+  const { urls, platform = "trendyol", tone = "Profesyonel", userId } = req.body;
   if (!urls || !urls.length) return res.status(400).json({ error: "URL listesi gerekli" });
 
-  const results = [];
-  for (const url of urls) {
-    try {
-      console.log(`🔍 Scraping: ${url}`);
-      const product = await scrapeProduct(url);
-      console.log(`🤖 AI içerik üretiliyor: ${product.name}`);
-      const aiContent = await generateContent(product, platform, tone);
-      results.push({ url, product, ...aiContent, error: null });
-    } catch (err) {
-      console.error(`❌ Hata (${url}):`, err.message);
-      results.push({ url, product: null, error: err.message });
-    }
-  }
+  try {
+    const effectiveUserId = req.apiUserId || userId;
+    // Toplu analiz özelliği kontrolü
+    await checkFeatureAccess(effectiveUserId, "bulk");
 
-  res.json({ results });
+    const results = [];
+    for (const url of urls) {
+      try {
+        // Her ürün için 1 kredi düşür; kredi biterse döngüyü durdur
+        await checkAndUseCredit(effectiveUserId, "text");
+      } catch (creditErr) {
+        results.push({ url, product: null, error: "Kredi bitti - kalan ürünler işlenmedi" });
+        break;
+      }
+      try {
+        console.log(`🔍 Scraping: ${url}`);
+        const product = await scrapeProduct(url);
+        console.log(`🤖 AI içerik üretiliyor: ${product.name}`);
+        const aiContent = await generateContent(product, platform, tone);
+        results.push({ url, product, ...aiContent, error: null });
+      } catch (err) {
+        console.error(`❌ Hata (${url}):`, err.message);
+        results.push({ url, product: null, error: err.message });
+      }
+    }
+
+    res.json({ results });
+  } catch (err) {
+    console.error("❌ Bulk hatası:", err.message);
+    res.status(err.status || 500).json({ error: err.message });
+  }
 });
 async function scrapeCompetitors(productName, platform) {
   return [];
@@ -801,9 +905,9 @@ Sadece JSON döndür, başka hiçbir şey yazma:
   }
 });
 const PLANS = {
-  baslangic: { name: "Başlangıç Paketi", price: "149.00" },
-  pro: { name: "Pro Paket", price: "349.00" },
-  ajans: { name: "Ajans Paketi", price: "899.00" },
+  baslangic: { name: "Başlangıç Paketi", price: "349.00" },
+  pro: { name: "Pro Paket", price: "699.00" },
+  ajans: { name: "Ajans Paketi", price: "1499.00" },
 };
 
 app.post("/api/create-payment", (req, res) => {
@@ -873,14 +977,20 @@ app.post("/api/shopier-callback", express.urlencoded({ extended: true }), async 
   if (status === "success") {
     try {
       const [userId, plan] = platform_order_id.split("_");
-      const creditsMap = { baslangic: 100, pro: 500, ajans: 999999 };
-      const credits = creditsMap[plan] || 0;
+      const planLimits = { baslangic: { c: 100, v: 30 }, pro: { c: 500, v: 100 }, ajans: { c: 1000, v: 300 } };
+      const limits = planLimits[plan] || { c: 0, v: 0 };
+      const credits = limits.c;
+      const visionCredits = limits.v;
 
-      console.log(`✅ Ödeme başarılı: user=${userId}, plan=${plan}, credits=${credits}`);
+      // Plan 30 gün geçerli
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      console.log(`✅ Ödeme başarılı: user=${userId}, plan=${plan}, credits=${credits}, vision=${visionCredits}`);
 
       const { error } = await supabase
   .from("profiles")
-  .update({ credits, plan })
+  .update({ credits, vision_credits: visionCredits, plan, plan_expires_at: expiresAt.toISOString() })
   .eq("id", userId);
 
 if (error) {
