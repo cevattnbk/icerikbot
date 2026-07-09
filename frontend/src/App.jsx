@@ -159,17 +159,19 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
       const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: url.trim(), platform, tone }),
+        body: JSON.stringify({ url: url.trim(), platform, tone, userId: user.id }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (res.status === 403) { setShowPlans(true); setCredits(0); return; }
+        throw new Error(errData.error || "Bir hata oluştu.");
+      }
       const r = await res.json();
       setResult(r);
       setActiveTab("description");
-      if (credits !== null && credits > 0) {
-        const newCredits = credits - 1;
-        setCredits(newCredits);
-        await supabase.from("profiles").update({ credits: newCredits }).eq("id", user.id);
-        if (newCredits === 1) {
+      if (typeof r.remainingCredits === "number") {
+        setCredits(r.remainingCredits);
+        if (r.remainingCredits === 1) {
           fetch("https://icerikbot-production.up.railway.app/api/send-low-credit-email", {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email }),
@@ -200,8 +202,13 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
     try {
       const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze-bulk", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urls, platform, tone }),
+        body: JSON.stringify({ urls, platform, tone, userId: user.id }),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (res.status === 403) { setError(errData.error || "Bu özellik planınızda yok."); setShowPlans(true); return; }
+        throw new Error(errData.error || "Bir hata oluştu.");
+      }
       const data = await res.json();
       setBulkResults(data.results || []);
     } catch (e) { setError(e.message); }
@@ -210,24 +217,23 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
 
   const handleImageAnalyze = async () => {
     if (!imageFile) return;
-    if (credits !== null && credits <= 0) { setShowPlans(true); return; }
     setLoading(true); setError(""); setResult(null);
     try {
       const formData = new FormData();
       formData.append("image", imageFile);
       formData.append("platform", platform);
       formData.append("tone", tone);
+      formData.append("userId", user.id);
       const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze-image", {
         method: "POST", body: formData,
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (res.status === 403) { setError(errData.error || "Görsel analiz hakkınız bitti."); setShowPlans(true); return; }
+        throw new Error(errData.error || "Bir hata oluştu.");
+      }
       const r = await res.json();
       setResult(r); setActiveTab("description");
-      if (credits !== null && credits > 0) {
-        const newCredits = credits - 1;
-        setCredits(newCredits);
-        await supabase.from("profiles").update({ credits: newCredits }).eq("id", user.id);
-      }
     } catch (e) { setError(e.message || "Bir hata oluştu."); }
     finally { setLoading(false); }
   };
@@ -918,11 +924,16 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
               formData.append("feed", feedFile);
               formData.append("platform", platform);
               formData.append("tone", tone);
+              formData.append("userId", user.id);
               const res = await fetch("https://icerikbot-production.up.railway.app/api/analyze-feed", {
                 method: "POST",
                 body: formData,
               });
-              if (!res.ok) throw new Error(await res.text());
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                if (res.status === 403) { setError(errData.error || "Bu özellik planınızda yok."); setFeedLoading(false); return; }
+                throw new Error(errData.error || "Bir hata oluştu.");
+              }
               const blob = await res.blob();
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
