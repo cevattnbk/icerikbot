@@ -407,7 +407,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
                 <div className="grid md:grid-cols-3 gap-4 max-w-3xl w-full">
                   {[
                     { id: "baslangic", name: "Başlangıç", price: "349₺", credits: "100 analiz", features: ["100 analiz/ay", "30 görsel (Vision) analiz", "Toplu analiz", "Banner aracı", "Kar/Zarar analizi"] },
-{ id: "pro", name: "Pro", price: "699₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "100 görsel (Vision) analiz", "Toplu analiz", "API erişimi", "Banner aracı", "XML/Excel toplu içerik", "Kar/Zarar analizi", "7/24 destek"] },
+{ id: "pro", name: "Pro", price: "699₺", credits: "500 analiz", highlight: true, features: ["500 analiz/ay", "100 görsel (Vision) analiz", "Toplu analiz","Toplu banner", "API erişimi", "Banner aracı", "XML/Excel toplu içerik", "Kar/Zarar analizi", "7/24 destek"] },
 { id: "ajans", name: "Ajans", price: "1.499₺", credits: "1000 analiz", features: ["1000 analiz/ay", "300 görsel (Vision) analiz", "API erişimi", "Toplu banner", "Toplu analiz", "XML/Excel toplu içerik", "Kar/Zarar analizi", "White label", "Özel destek"] },
                   ].map(p => (
                     <div key={p.id} className={`rounded-2xl p-5 border ${p.highlight ? "border-cyan-500/50 bg-cyan-500/5" : "border-slate-800 bg-slate-900"}`}>
