@@ -505,6 +505,64 @@ app.get("/api/kar-sablon", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get("/api/feed-sablon", async (req, res) => {
+  try {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Ürünler");
+
+    worksheet.columns = [
+      { header: "Ürün Adı", key: "urun", width: 35 },
+      { header: "Marka", key: "marka", width: 20 },
+      { header: "Kategori", key: "kategori", width: 20 },
+      { header: "Açıklama", key: "aciklama", width: 40 },
+      { header: "Fiyat", key: "fiyat", width: 15 },
+    ];
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.eachCell(cell => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0F172A" } };
+      cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 11 };
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+      cell.border = {
+        top: { style: "thin", color: { argb: "FF334155" } },
+        bottom: { style: "thin", color: { argb: "FF334155" } },
+        left: { style: "thin", color: { argb: "FF334155" } },
+        right: { style: "thin", color: { argb: "FF334155" } },
+      };
+    });
+    headerRow.height = 30;
+
+    const samples = [
+      { urun: "Pamuklu Erkek Tişört", marka: "Örnek Marka", kategori: "Giyim", aciklama: "Mevcut açıklama (varsa)", fiyat: "299 TL" },
+      { urun: "Kablosuz Kulaklık", marka: "", kategori: "Elektronik", aciklama: "", fiyat: "899 TL" },
+      { urun: "Seramik Kupa 350ml", marka: "", kategori: "Ev & Yaşam", aciklama: "", fiyat: "" },
+    ];
+
+    samples.forEach((s, idx) => {
+      const row = worksheet.addRow(s);
+      row.height = 22;
+      const bgColor = idx % 2 === 0 ? "FFF8FAFC" : "FFFFFFFF";
+      row.eachCell(cell => {
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: bgColor } };
+        cell.alignment = { vertical: "middle" };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFE2E8F0" } },
+          bottom: { style: "thin", color: { argb: "FFE2E8F0" } },
+          left: { style: "thin", color: { argb: "FFE2E8F0" } },
+          right: { style: "thin", color: { argb: "FFE2E8F0" } },
+        };
+      });
+    });
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", 'attachment; filename="icerikbot_feed_sablon.xlsx"');
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error("❌ Feed şablon hatası:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
 app.post("/api/karloss-excel", upload.single("file"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "Dosya gerekli" });
   const { komisyon: defKomisyon = "15", kargo: defKargo = "30", kdv: defKdv = "20", ekstra: defEkstra = "0" } = req.body;

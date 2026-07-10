@@ -879,6 +879,24 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
       <h3 className="text-white font-semibold mb-1">📊 XML / Excel ile Toplu İçerik Üret</h3>
       <p className="text-slate-400 text-sm mb-6">Pazaryeri XML feed'inizi veya Excel ürün listenizi yükleyin — her ürün için otomatik içerik üretilsin, Excel olarak indirin.</p>
 
+      <div className="p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/20 mb-6">
+        <p className="text-xs text-cyan-400 mb-1 font-medium">📋 Nasıl kullanılır?</p>
+        <p className="text-xs text-slate-400">Aşağıdaki şablonu indirin, ürünlerinizi doldurun ve geri yükleyin. Sütunlar: <span className="text-white">Ürün Adı | Marka | Kategori | Açıklama | Fiyat</span></p>
+        <p className="text-xs text-slate-500 mt-1">Pazaryeri XML feed'iniz varsa şablona gerek yok, doğrudan XML dosyasını yükleyebilirsiniz.</p>
+        <button onClick={async () => {
+          const res = await fetch("https://icerikbot-production.up.railway.app/api/feed-sablon");
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "icerikbot_feed_sablon.xlsx";
+          a.click();
+          URL.revokeObjectURL(url);
+        }} className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-all">
+          ⬇ Excel Şablonu İndir
+        </button>
+      </div>
+
       <div className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Dosya Yükle</label>
