@@ -74,6 +74,7 @@ export default function App({ onBack, user, onAdmin }) {
   const [error, setError] = useState("");
   const [result, setResult] = useState(null);
   const [credits, setCredits] = useState(null);
+  const [visionCredits, setVisionCredits] = useState(null);
   const [showPlans, setShowPlans] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(null);
   const [bulkMode, setBulkMode] = useState(false);
@@ -113,14 +114,8 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
 
   useEffect(() => {
     if (user) {
-      supabase.from("profiles").select("credits").eq("id", user.id).single()
-        .then(({ data }) => { if (data) setCredits(data.credits); });
-    }
-  }, [user]);
-  useEffect(() => {
-    if (user) {
-      supabase.from("profiles").select("credits").eq("id", user.id).single()
-        .then(({ data }) => { if (data) setCredits(data.credits); });
+      supabase.from("profiles").select("credits, vision_credits").eq("id", user.id).single()
+        .then(({ data }) => { if (data) { setCredits(data.credits); setVisionCredits(data.vision_credits); } });
     }
   }, [user]);
 
@@ -234,6 +229,7 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
       }
       const r = await res.json();
       setResult(r); setActiveTab("description");
+      if (typeof r.remainingVisionCredits === "number") setVisionCredits(r.remainingVisionCredits);
     } catch (e) { setError(e.message || "Bir hata oluştu."); }
     finally { setLoading(false); }
   };
@@ -285,6 +281,11 @@ const [bulkBannerMode, setBulkBannerMode] = useState(false);
               className={`w-full py-2 rounded-lg text-sm font-medium border transition-all flex items-center justify-center gap-2 ${imageMode ? "bg-cyan-500 text-[#0b121f] border-cyan-500" : "border-slate-700 text-slate-400 hover:border-slate-600"}`}>
               📷 {imageMode ? "Görsel Modunda" : "Görselden Üret"}
             </button>
+            {imageMode && visionCredits !== null && (
+              <div className={`text-center text-xs py-2 px-3 rounded-lg border ${visionCredits > 0 ? "border-cyan-500/20 bg-cyan-500/5 text-cyan-400" : "border-red-500/20 bg-red-500/5 text-red-400"}`}>
+                {visionCredits > 0 ? `📷 ${visionCredits} görsel analiz hakkın kaldı` : "📷 Görsel analiz hakkın bitti"}
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">Platform</label>
