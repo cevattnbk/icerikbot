@@ -76,13 +76,27 @@ async function checkAndUseCredit(userId, type = "text") {
   if (!userId) {
     const e = new Error("Giriş yapmalısınız."); e.status = 401; throw e;
   }
-  const { data: profile, error } = await supabase
+  let { data: profile, error } = await supabase
     .from("profiles")
-    .select("credits, vision_credits, plan")
+    .select("credits, vision_credits, plan, plan_expires_at")
     .eq("id", userId)
     .single();
   if (error || !profile) {
     const e = new Error("Kullanıcı bulunamadı."); e.status = 404; throw e;
+  }
+
+  // Plan süresi dolmuş mu? Dolmuşsa free'ye düşür.
+  if (profile.plan && profile.plan !== "free" && profile.plan_expires_at) {
+    const expired = new Date(profile.plan_expires_at) < new Date();
+    if (expired) {
+      console.log(`⏰ Plan süresi doldu: ${userId} (${profile.plan} → free)`);
+      const freeLimits = PLAN_LIMITS.free;
+      await supabase
+        .from("profiles")
+        .update({ plan: "free", credits: 0, vision_credits: 0, plan_expires_at: null })
+        .eq("id", userId);
+      profile = { ...profile, plan: "free", credits: 0, vision_credits: 0 };
+    }
   }
 
   const column = type === "vision" ? "vision_credits" : "credits";
